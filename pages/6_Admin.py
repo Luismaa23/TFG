@@ -5,7 +5,9 @@ Solo accesible para usuarios con rol 'admin'.
 """
 
 import streamlit as st
+import pandas as pd
 from utils.theme import inject_custom_css
+from utils.database import get_all_evaluaciones
 from utils.auth import (
     require_auth,
     get_all_users,
@@ -221,6 +223,67 @@ else:
                 )
 
         st.divider()
+
+# ─── Exportar Datos de Investigación ─────────────────────────────────────────
+st.markdown("### Exportar Datos de Investigación")
+
+st.markdown(
+    '<div style="background:#1E293B;border-radius:12px;padding:1.5rem;'
+    'margin-bottom:1.5rem;border:1px solid #334155;">'
+    '<h4 style="color:#F59E0B;margin-bottom:0.5rem;">'
+    'Sistema de archivos efímero</h4>'
+    '<p style="color:#8B949E;margin:0;">'
+    'Streamlit Community Cloud reinicia los contenedores periódicamente. '
+    'Las evaluaciones almacenadas en SQLite se perderán tras cada reinicio. '
+    'Usa este botón para exportar los datos de investigación antes de que '
+    'eso ocurra.</p></div>',
+    unsafe_allow_html=True,
+)
+
+evaluaciones = get_all_evaluaciones()
+
+if len(evaluaciones) == 0:
+    st.info("No hay evaluaciones registradas todavía.")
+else:
+    df_eval = pd.DataFrame(evaluaciones)
+
+    # Convertir listas y dicts a texto plano para CSV
+    if "platos" in df_eval.columns:
+        df_eval["platos"] = df_eval["platos"].apply(
+            lambda x: " | ".join(x) if isinstance(x, list) else str(x)
+        )
+    if "restricciones" in df_eval.columns:
+        df_eval["restricciones"] = df_eval["restricciones"].apply(
+            lambda x: str(x) if not isinstance(x, str) else x
+        )
+
+    col_info, col_btn = st.columns([2, 1])
+
+    with col_info:
+        st.markdown(
+            f'<div style="background:#1E293B;border-radius:8px;'
+            f'padding:0.75rem 1rem;display:inline-block;">'
+            f'<span style="color:#8B949E;">Registros disponibles: </span>'
+            f'<span style="color:#3B82F6;font-weight:600;">{len(df_eval)}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    with col_btn:
+        csv_data = df_eval.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="Descargar CSV",
+            data=csv_data,
+            file_name="resultados_tfg_menumatch.csv",
+            mime="text/csv",
+            use_container_width=True,
+            type="primary",
+        )
+
+    st.markdown("#### Vista Previa")
+    st.dataframe(df_eval.head(10), use_container_width=True, hide_index=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # ─── Info de seguridad ───────────────────────────────────────────────────────
 st.markdown(
