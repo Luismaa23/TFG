@@ -77,8 +77,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Header ──────────────────────────────────────────────────────────────────
-# --- Header ---
-# Usamos columnas para que el logo quede perfectamente centrado
 col1, col2, col3 = st.columns([1, 0.5, 1])
 with col2:
     st.image("assets/logo.png", use_container_width=True)
@@ -122,7 +120,8 @@ with tab_login:
             success, message, user_data = login_user(login_username, login_password)
             if success:
                 set_current_user(user_data)
-                st.switch_page("pages/1_Inicio.py")
+                # Cambiamos switch_page por rerun para evitar errores de sincronización de páginas
+                st.rerun()
             else:
                 st.error(f"{message}")
 
@@ -203,6 +202,7 @@ with tab_register:
                     _, _, user_data = login_user(reg_username, reg_password)
                     if user_data:
                         set_current_user(user_data)
+                    # Usamos rerun para desbloquear la navegación lateral correctamente
                     st.rerun()
                 else:
                     st.error(f"{message}")
