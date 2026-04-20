@@ -1,0 +1,45 @@
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ─── Entornos Virtuales ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Distribución / Empaquetado ──────────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+*.egg
+
+# ─── IDEs y Editores ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Archivos de log ─────────────────────────────────────────────────────────
+*.log
+
+# ─── Streamlit ───────────────────────────────────────────────────────────────
+# Nota: NO ignoramos .streamlit/ porque contiene config.toml necesario
+
+# ─── Datos efímeros (backups de migración JSON) ──────────────────────────────
+data/*.json.bak
+
+# ─── IMPORTANTE ──────────────────────────────────────────────────────────────
+# NO excluir data/menumatch.db  → necesario para arrancar con catálogo cargado
+# NO excluir assets/            → contiene el logo de la app
+# NO excluir static/            → contiene recursos estáticos

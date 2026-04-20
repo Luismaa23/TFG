@@ -1,0 +1,1063 @@
+================================================================================
+                    MENUMATCH - DOCUMENTACIÓN DE DECISIONES
+                      Registro de Decisiones Arquitectónicas
+================================================================================
+
+Proyecto: MenuMatch - Tu menú del día óptimo
+Fecha de inicio: 2026-02-09
+Última actualización: 2026-03-03
+
+================================================================================
+                              ÍNDICE DE DECISIONES
+================================================================================
+
+1. Elección del Framework (Streamlit)
+2. Tema Visual (Modo Oscuro Profesional)
+3. Paleta de Colores
+4. Estructura del Proyecto
+5. Gestión de Estado
+6. Sistema de Autenticación con 3 Roles
+7. Sidebar Compartido con Cierre de Sesión
+8. CRUD Completo de Usuarios en Panel Admin
+9. Navegación por Roles con st.navigation()
+10. Persistencia Compartida de Menús
+11. Migración a SQLite — Base de Datos Relacional
+12. Restricciones Alimentarias Ampliadas para ML
+13. Motor de Recomendación Heurístico (Basado en Reglas)
+14. Carta Completa para visualización sin recomendaciones
+15. Formulario de Evaluación y tabla evaluaciones_menus (Feedback ML)
+
+APÉNDICES:
+A. Guía de Instalación del Proyecto
+B. Comandos de Consola Más Importantes
+C. Creación de la Base de Datos (SQLite)
+
+================================================================================
+                              DECISIONES DETALLADAS
+================================================================================
+
+------------------------------------------------------------------------------
+DECISIÓN #1: Elección del Framework - Streamlit
+------------------------------------------------------------------------------
+Fecha: 2026-02-09
+Estado: Implementada
+
+¿Qué se decidió?
+- Usar Streamlit como framework principal para el desarrollo del frontend.
+
+¿Por qué se tomó esta decisión?
+- Streamlit permite desarrollo rápido de aplicaciones web con Python
+- Ideal para aplicaciones de datos y dashboards interactivos
+- No requiere conocimientos de HTML/CSS/JS para funcionalidad básica
+- Permite prototipar rápidamente y enfocarse en la lógica de negocio
+- Adecuado para un TFG donde el tiempo es un factor crítico
+
+Alternativas consideradas:
+- Flask + HTML/CSS/JS: Más flexible pero mayor tiempo de desarrollo
+- Django: Demasiado robusto para un MVP
+- React/Vue: Requiere conocimientos de JavaScript
+
+------------------------------------------------------------------------------
+DECISIÓN #2: Tema Visual - Modo Oscuro Profesional
+------------------------------------------------------------------------------
+Fecha: 2026-02-09
+Estado: Implementada
+
+¿Qué se decidió?
+- Implementar un tema oscuro profesional como diseño principal.
+
+¿Por qué se tomó esta decisión?
+- El modo oscuro reduce la fatiga visual durante uso prolongado
+- Proporciona una apariencia moderna y premium
+- Mayor contraste para resaltar elementos importantes
+- Tendencia actual en diseño de interfaces (UX moderna)
+- Diferenciación visual respecto a aplicaciones genéricas
+
+Archivo relacionado: utils/theme.py
+
+------------------------------------------------------------------------------
+DECISIÓN #3: Paleta de Colores
+------------------------------------------------------------------------------
+Fecha: 2026-02-09
+Estado: Implementada
+
+¿Qué se decidió?
+- Color primario: #00D4AA (Verde menta/turquesa)
+- Fondo principal: #0E1117 (Negro profundo)
+- Fondo secundario: #1A1D24 (Gris oscuro)
+- Texto principal: #FAFAFA (Blanco suave)
+- Texto secundario: #8B949E (Gris medio)
+- Bordes: #30363D (Gris oscuro)
+
+¿Por qué se tomó esta decisión?
+- Verde menta (#00D4AA) evoca frescura y alimentos saludables
+- Se asocia con "verde" = saludable, orgánico, natural
+- Alto contraste con el fondo oscuro para accesibilidad
+- Paleta inspirada en GitHub Dark Mode (probada y profesional)
+- Colores semánticos claros (success, warning, error)
+
+Justificación del gradiente primario:
+- Linear-gradient(135deg, #00D4AA, #00B894) crea profundidad visual
+- El ángulo de 135° sigue la dirección natural de lectura
+
+------------------------------------------------------------------------------
+DECISIÓN #4: Estructura del Proyecto - Multipágina
+------------------------------------------------------------------------------
+Fecha: 2026-02-09
+Estado: Implementada
+
+¿Qué se decidió?
+Organizar la aplicación en 5 páginas principales:
+1. 🏠 Inicio: Página de bienvenida y resumen
+2. 📋 Cargar Menú: Funcionalidad para subir/crear menús
+3. ⚙️ Restricciones: Configuración de preferencias alimentarias
+4. 🎯 Recomendaciones: Algoritmo de recomendación de menús
+5. 📊 Historial: Registro de menús anteriores
+
+¿Por qué se tomó esta decisión?
+- Streamlit soporta navegación multipágina nativa (carpeta /pages)
+- Separación clara de responsabilidades (Single Responsibility)
+- Cada página tiene un propósito específico
+- Los emojis en nombres mejoran la navegabilidad visual
+- Orden lógico del flujo de usuario
+
+Estructura de carpetas:
+TFG/
+├── app.py              # Punto de entrada, configuración global
+├── pages/              # Páginas de la aplicación
+│   ├── 1_🏠_Inicio.py
+│   ├── 2_📋_Cargar_Menu.py
+│   ├── 3_⚙️_Restricciones.py
+│   ├── 4_🎯_Recomendaciones.py
+│   └── 5_📊_Historial.py
+├── utils/              # Utilidades y componentes reutilizables
+│   ├── __init__.py
+│   ├── theme.py        # Estilos y CSS
+│   └── components.py   # Componentes UI reutilizables
+└── .streamlit/         # Configuración de Streamlit
+    └── config.toml
+
+------------------------------------------------------------------------------
+DECISIÓN #5: Gestión de Estado con st.session_state
+------------------------------------------------------------------------------
+Fecha: 2026-02-09
+Estado: Implementada
+
+¿Qué se decidió?
+- Usar st.session_state para mantener el estado global de la aplicación.
+- Estructuras de datos principales:
+  * menus: Lista de menús cargados
+  * restricciones: Diccionario con preferencias del usuario
+  * historial: Lista de menús seleccionados anteriormente
+
+¿Por qué se tomó esta decisión?
+- session_state es el mecanismo nativo de Streamlit para persistencia
+- Permite compartir datos entre páginas sin base de datos
+- Suficiente para un MVP/prototipo
+- Inicialización centralizada en app.py para consistencia
+
+Estructura de restricciones:
+{
+    "presupuesto_max": 15.0,    # Euros máximo por menú
+    "calorias_max": 800,        # Calorías máximo por menú
+    "vegetariano": False,
+    "vegano": False,
+    "sin_gluten": False,
+    "sin_lactosa": False
+}
+
+Limitaciones conocidas:
+- Los datos se pierden al cerrar el navegador
+- No hay persistencia entre sesiones
+- Para producción, considerar base de datos (SQLite, PostgreSQL)
+
+------------------------------------------------------------------------------
+DECISIÓN #6: Sistema de Autenticación con 3 Roles de Usuario
+------------------------------------------------------------------------------
+Fecha: 2026-02-10
+Estado: Implementada
+
+¿Qué se decidió?
+- Implementar un sistema de login/registro con 3 roles de usuario:
+  * Administrador (admin): Acceso total + panel de gestión de usuarios
+  * Restaurante: Puede cargar y gestionar menús
+  * Usuario: Puede ver menús, configurar restricciones, recibir
+    recomendaciones y consultar historial
+
+¿Por qué se tomó esta decisión?
+- La aplicación necesita diferenciar quién carga menús (restaurantes)
+  de quién los consume (usuarios)
+- Un rol de administrador es necesario para la gestión del sistema
+- Cada rol tiene una experiencia de usuario diferente y específica
+
+Implementación técnica:
+- Módulo de autenticación: utils/auth.py
+- Almacenamiento: data/users.json (JSON local con contraseñas bcrypt)
+- Guardias de acceso: require_auth(allowed_roles) en cada página
+- Sesión: st.session_state["current_user"]
+- Admin por defecto: admin / admin123
+
+¿Por qué JSON local y no base de datos?
+- Consistente con la decisión #5 de mantener el MVP simple
+- No añade dependencias externas (SQLite, PostgreSQL)
+- Suficiente para prototipo/demostración del TFG
+- Contraseñas hasheadas con bcrypt para seguridad básica
+
+Control de acceso por página:
+- Login (0_🔐_Login.py): Público, sin autenticación
+- Inicio (1_🏠_Inicio.py): Todos los roles autenticados
+- Cargar Menú (2_📋_Cargar_Menu.py): restaurante, admin
+- Restricciones (3_⚙️_Restricciones.py): usuario, admin
+- Recomendaciones (4_🎯_Recomendaciones.py): usuario, admin
+- Historial (5_📊_Historial.py): usuario, admin
+- Admin (6_👑_Admin.py): solo admin
+
+Alternativas consideradas:
+- Streamlit Authenticator: Librería externa, menos control
+- Firebase Auth: Requiere cuenta de Google Cloud y conexión a internet
+- SQLite: Más robusto pero innecesario para MVP
+
+Archivos relacionados:
+  utils/auth.py, pages/0_🔐_Login.py, pages/6_👑_Admin.py
+
+------------------------------------------------------------------------------
+DECISIÓN #7: Sidebar Compartido con Cierre de Sesión
+------------------------------------------------------------------------------
+Fecha: 2026-02-10
+Estado: Implementada
+
+¿Qué se decidió?
+- Crear una función render_sidebar() en utils/auth.py que renderiza
+  la barra lateral con la información del usuario y un botón de logout.
+- Llamar a esta función desde TODAS las páginas autenticadas.
+
+¿Por qué se tomó esta decisión?
+- En Streamlit, cada página se ejecuta de forma independiente. El sidebar
+  definido en app.py NO persiste cuando el usuario navega a otra página.
+- Sin un sidebar compartido, el usuario no tenía forma de cerrar sesión
+  desde las páginas internas.
+- Centralizar el sidebar en una función garantiza consistencia visual
+  y evita duplicar código HTML en cada página.
+
+Alternativa descartada:
+- Definir el sidebar solo en app.py: No funciona porque Streamlit
+  rerenderiza todo el sidebar al navegar entre páginas.
+
+Archivos modificados:
+  utils/auth.py (nueva función render_sidebar)
+  + todas las páginas (1-6): llamada a render_sidebar() tras require_auth()
+
+------------------------------------------------------------------------------
+DECISIÓN #8: CRUD Completo de Usuarios en Panel Admin
+------------------------------------------------------------------------------
+Fecha: 2026-02-10
+Estado: Implementada
+
+¿Qué se decidió?
+- El panel de administración permite:
+  * CREAR usuarios de cualquier rol (incluido admin)
+  * EDITAR nombre y rol de usuarios existentes
+  * ELIMINAR usuarios (con protecciones)
+
+¿Por qué se tomó esta decisión?
+- Un administrador necesita control total sobre los usuarios del sistema.
+- Los admins deben poder crear otros admins sin usar el registro público.
+- Se implementaron protecciones de seguridad:
+  * No se puede eliminar el último administrador
+  * No se puede cambiar el rol del último administrador
+  * Un admin no se puede eliminar a sí mismo desde el panel
+
+¿Por qué dos funciones de creación (register_user vs admin_create_user)?
+- register_user: Usado en Login público, solo permite roles usuario/restaurante
+- admin_create_user: Usado en panel admin, permite todos los roles incluido admin
+- Esto separa la lógica de negocio y evita que un usuario se auto-asigne admin
+
+Archivos relacionados:
+  utils/auth.py (admin_create_user, update_user_nombre)
+  pages/6_👑_Admin.py
+
+------------------------------------------------------------------------------
+DECISIÓN #9: Navegación por Roles con st.navigation()
+------------------------------------------------------------------------------
+Fecha: 2026-02-10
+Estado: Implementada (sustituye parcialmente Decisión #7)
+
+¿Qué se decidió?
+- Usar st.navigation() de Streamlit para controlar qué páginas aparecen
+  en el sidebar según el rol del usuario.
+- Cada rol solo ve las páginas a las que tiene acceso.
+- El sidebar con info del usuario y logout se gestiona desde app.py,
+  eliminando la necesidad de render_sidebar() en cada página.
+- Se eliminó st.set_page_config() de todas las páginas individuales
+  (ahora solo existe en app.py).
+
+¿Por qué se tomó esta decisión?
+- El enfoque anterior (render_sidebar + require_auth con error) mostraba
+  TODAS las páginas en el sidebar y bloqueaba con un mensaje de error.
+- Esto es mala UX: el usuario no debería ver opciones que no puede usar.
+- st.navigation() es la API oficial de Streamlit para este caso de uso.
+- Centralizar set_page_config y sidebar en app.py simplifica el código
+  y elimina duplicación.
+
+Visibilidad por rol:
+  👤 Usuario:      Inicio, Restricciones, Recomendaciones, Historial
+  🍽️ Restaurante:  Inicio, Cargar Menú
+  👑 Admin:        Todas las páginas + Panel Admin
+
+Cambios técnicos:
+- app.py: Usa st.navigation() con listas de st.Page() filtradas por rol
+- Todas las páginas: Eliminado st.set_page_config() y render_sidebar()
+- require_auth(): Cambiado st.switch_page() a st.rerun()
+- Login: Cambiado st.switch_page() a st.rerun() tras login/registro
+
+Archivos modificados:
+  app.py, utils/auth.py, utils/__init__.py
+  + todas las páginas (0-6)
+
+------------------------------------------------------------------------------
+DECISIÓN #10: Persistencia Compartida de Menús (data/menus.json)
+------------------------------------------------------------------------------
+Fecha: 2026-02-10
+Estado: Implementada
+
+¿Qué se decidió?
+- Los menús (platos) se guardan en data/menus.json, un archivo compartido
+  accesible por todos los usuarios.
+- Se creó utils/menu_storage.py con funciones de lectura/escritura.
+- Se eliminó la dependencia de st.session_state para los menús.
+
+¿Por qué se tomó esta decisión?
+- st.session_state es per-browser: un menú cargado por un restaurante
+  en su navegador NO era visible para un usuario en otro navegador.
+- Los menús deben ser globales — un restaurante los publica y todos
+  los usuarios los ven.
+- Se realiza un seguimiento del restaurante que subió cada plato
+  (campo uploaded_by) y la fecha (uploaded_at).
+
+¿Por qué JSON y no base de datos?
+- Consistente con Decisión #5 (simplicidad MVP)
+- Mismo patrón que data/users.json — coherencia arquitectónica
+- Suficiente para demostración del TFG
+
+Archivos relacionados:
+  utils/menu_storage.py (NUEVO)
+  pages/1_🏠_Inicio.py, pages/2_📋_Cargar_Menu.py
+  pages/4_🎯_Recomendaciones.py, pages/6_👑_Admin.py
+
+------------------------------------------------------------------------------
+DECISIÓN #11: Migración a SQLite — Base de Datos Relacional
+------------------------------------------------------------------------------
+Fecha: 2026-03-02
+Estado: Implementada (sustituye parcialmente Decisiones #5, #6 y #10)
+
+¿Qué se decidió?
+- Migrar toda la persistencia de JSON plano a SQLite (data/menumatch.db).
+- Crear 3 tablas: usuarios, menus, pedidos.
+- Implementar migración automática de datos JSON existentes.
+- Añadir nueva funcionalidad de "pedidos" (selección de menú + valoración).
+
+¿Por qué se tomó esta decisión?
+- Los archivos JSON no soportan consultas complejas ni concurrencia.
+- SQLite es una BD relacional completa incluida en Python (sqlite3),
+  sin necesidad de instalar software adicional ni dependencias externas.
+- Ofrece ACID (atomicidad, consistencia, aislamiento, durabilidad),
+  integridad referencial y consultas SQL estándar.
+- Es ideal para aplicaciones de escritorio/prototipo y TFGs.
+- Permite evolucionar hacia PostgreSQL/MySQL en producción sin
+  cambiar la lógica de negocio (solo la cadena de conexión).
+
+Esquema de la base de datos:
+
+  Tabla 'usuarios':
+  - id (INTEGER PK), username (TEXT UNIQUE), password (TEXT, bcrypt),
+    role (TEXT), nombre (TEXT), created_at (TEXT)
+
+  Tabla 'menus':
+  - id (INTEGER PK), nombre (TEXT), precio (REAL), calorias (INTEGER),
+    categoria (TEXT), vegetariano (BOOLEAN), sin_gluten (BOOLEAN),
+    uploaded_by (TEXT), uploaded_at (TEXT)
+
+  Tabla 'pedidos':
+  - id (INTEGER PK), username (TEXT), platos (TEXT, JSON array),
+    precio (REAL), calorias (INTEGER), valoracion (INTEGER 0-5),
+    fecha (TEXT)
+
+Estrategia de migración:
+- Al iniciar la app, init_db() crea las tablas si no existen.
+- Si existen users.json / menus.json, los datos se importan
+  automáticamente a SQLite y los JSON se renombran a .json.bak.
+- Esto garantiza una transición transparente sin pérdida de datos.
+
+Funcionalidad nueva — Pedidos:
+- Desde Recomendaciones, el usuario puede "Seleccionar este menú",
+  lo que crea un registro en la tabla pedidos.
+- En Historial, se muestran los pedidos reales de la BD (no session_state).
+- El usuario puede valorar cada pedido con 1-5 estrellas,
+  lo que alimentará el futuro sistema de ML.
+
+Alternativas consideradas:
+- PostgreSQL: Requiere servidor externo, excesivo para TFG
+- MongoDB: No relacional, menos adecuado para datos estructurados
+- Mantener JSON: Insuficiente para pedidos y consultas complejas
+
+Archivos relacionados:
+  utils/database.py (NUEVO) — esquema, conexión, migración, CRUD pedidos
+  utils/auth.py (REESCRITO) — todas las operaciones SQL
+  utils/menu_storage.py (REESCRITO) — todas las operaciones SQL
+  pages/4_🎯_Recomendaciones.py (MODIFICADO) — botón "Seleccionar menú"
+  pages/5_📊_Historial.py (REESCRITO) — lee pedidos de BD + valoración
+  app.py (MODIFICADO) — eliminado session_state.historial
+
+------------------------------------------------------------------------------
+DECISIÓN #12: Restricciones Alimentarias Ampliadas para ML
+------------------------------------------------------------------------------
+Fecha: 2026-04-15
+Estado: Implementada
+
+¿Qué se decidió?
+- Ampliar el modelo de datos de platos con 4 nuevas restricciones
+  alimentarias booleanas:
+  * con_lactosa: Indica si el plato contiene lactosa
+  * con_frutos_secos: Indica si contiene frutos secos
+  * con_huevo: Indica si contiene huevo
+  * bajo_sal: Indica si es bajo en sal
+- Total de restricciones: 6 (vegetariano, sin_gluten + 4 nuevas)
+
+¿Por qué se tomó esta decisión?
+- El modelo de Machine Learning necesita estas variables como features
+  de entrada para generar recomendaciones personalizadas.
+- Cubren los alérgenos más comunes (lactosa, frutos secos, huevo)
+  y una preferencia dietética relevante (bajo en sal).
+- Sin estas columnas, el modelo no puede filtrar ni ponderar
+  correctamente los platos según las restricciones del usuario.
+
+Cambios técnicos:
+- Base de datos (utils/database.py):
+  * Esquema CREATE TABLE actualizado con 4 nuevas columnas BOOLEAN
+  * Nueva función _migrate_add_restriction_columns() que ejecuta
+    ALTER TABLE para bases de datos existentes (idempotente)
+- Almacenamiento (utils/menu_storage.py):
+  * get_all_menus(): Lee las 4 nuevas columnas
+  * add_menu_item(): Inserta las 4 nuevas columnas
+  * add_menu_items(): Inserta las 4 nuevas columnas (CSV batch)
+- Página de carga (pages/2_📋_Cargar_Menu.py):
+  * Tab CSV: Formato esperado actualizado con las 6 columnas
+  * Tab Manual: Formulario con 2 filas × 3 columnas de checkboxes
+  * Diccionario nuevo_plato: Incluye las 4 nuevas claves
+  * Visualización: Las restricciones se muestran en las tarjetas
+
+Migración de BD existente:
+- Al arrancar la app, _migrate_add_restriction_columns() añade las
+  columnas con ALTER TABLE si no existen.
+- Platos existentes reciben DEFAULT 0 (false) en las nuevas columnas.
+- La migración es idempotente: si las columnas ya existen, no falla.
+
+Formato CSV actualizado:
+  nombre, precio, calorias, vegetariano, sin_gluten, con_lactosa,
+  con_frutos_secos, con_huevo, bajo_sal, categoria
+
+Archivos modificados:
+  utils/database.py (MODIFICADO) — esquema + migración ALTER TABLE
+  utils/menu_storage.py (MODIFICADO) — CRUD con 4 columnas nuevas
+  pages/2_📋_Cargar_Menu.py (MODIFICADO) — UI con 6 restricciones
+
+------------------------------------------------------------------------------
+DECISIÓN #13: Motor de Recomendación Heurístico (Basado en Reglas)
+------------------------------------------------------------------------------
+Fecha: 2026-04-15
+Estado: Implementada
+
+¿Qué se decidió?
+- Implementar el primer motor de recomendación del sistema como un
+  algoritmo heurístico basado en reglas (no ML) en dos fases:
+  * Fase 1 — Filtrado estricto (Hard Rules): elimina menús que no
+    cumplen las restricciones dietéticas del usuario o superan su
+    presupuesto máximo.
+  * Fase 2 — Puntuación ponderada (Soft Scoring): calcula un score
+    numérico para cada menú superviviente.
+- Reescribir la página de Recomendaciones con controles integrados
+  en el sidebar y visualización detallada de resultados.
+
+¿Por qué se tomó esta decisión?
+- Es necesario tener un motor funcional antes de integrar ML.
+- La heurística permite validar el flujo completo (usuario configura
+  → sistema recomienda → usuario selecciona → se registra pedido)
+  sin depender de datos de entrenamiento.
+- La satisfacción_media simulada (3.0) será reemplazada por
+  valoraciones reales de la tabla pedidos cuando se integre ML.
+- Los pesos (w1, w2, w3) son configurables desde la UI, lo que
+  permite experimentar con distintas prioridades.
+
+Fórmula de scoring:
+  score = (w1 × satisfacción_media) - (w2 × precio_normalizado)
+          - (w3 × desviación_calórica)
+
+  Donde:
+    precio_normalizado  = precio_menu / presupuesto_usuario
+    desviación_calórica = |calorías_menu - calorías_objetivo| / calorías_objetivo
+    satisfacción_media  = 3.0 (simulada, futura integración con ML)
+
+Pesos por defecto:
+    w1 = 0.5 (satisfacción — mayor peso)
+    w2 = 0.3 (precio — peso medio)
+    w3 = 0.2 (calorías — peso menor)
+
+Mapeo de restricciones usuario → menú:
+  Restricciones POSITIVAS (el plato DEBE tener la propiedad):
+    vegetariano   → menu.vegetariano == True
+    sin_gluten    → menu.sin_gluten  == True
+    bajo_sal      → menu.bajo_sal    == True
+  Restricciones NEGATIVAS (el plato NO DEBE tener la propiedad):
+    sin_lactosa       → menu.con_lactosa       == False
+    sin_frutos_secos  → menu.con_frutos_secos  == False
+    sin_huevo         → menu.con_huevo          == False
+
+Generación de combinaciones de menú:
+- Se combinan platos de categorías Primero/Entrante con Segundo/Principal
+  para crear menús de 2 platos.
+- Restricciones positivas (vegetariano, sin_gluten, bajo_sal):
+  el combo cumple solo si TODOS los platos cumplen.
+- Restricciones negativas (con_lactosa, con_frutos_secos, con_huevo):
+  el combo contiene si ALGÚN plato contiene (lógica de alérgenos).
+- Fallback: si no hay categorías suficientes para combinar, cada
+  plato individual se trata como un menú de 1 plato.
+
+Arquitectura del módulo:
+  utils/recomendador_heuristico.py contiene:
+    - _cumple_restricciones(): Filtrado booleano por restricciones
+    - _calcular_score(): Fórmula de puntuación ponderada
+    - recomendar_menu_heuristico(): Retorna el mejor menú o None
+    - recomendar_top_n(): Retorna los N mejores menús
+    - generar_combinaciones_menu(): Crea combos desde platos sueltos
+    - _combinar_platos(): Agrega datos de varios platos en un dict
+
+Página de Recomendaciones (reescrita):
+  Sidebar integrado con:
+    - Slider de presupuesto (€5-30)
+    - Number input de calorías objetivo (300-2000)
+    - 6 checkboxes de restricciones dietéticas
+    - Expander con sliders de pesos w1/w2/w3
+  Área principal con:
+    - Resumen de filtros activos (badges)
+    - Botón "Buscar Menú Óptimo"
+    - Card hero del menú recomendado con métricas
+    - Sección de alternativas (runners-up)
+    - Transparencia del algoritmo (desglose scoring)
+    - Botón "Seleccionar este menú" (crea pedido)
+
+Archivos creados/modificados:
+  utils/recomendador_heuristico.py (NUEVO) — motor de recomendación
+  pages/4_🎯_Recomendaciones.py (REESCRITO) — UI con heurístico
+
+------------------------------------------------------------------------------
+DECISIÓN #14: Carta Completa para visualización sin recomendaciones
+------------------------------------------------------------------------------
+Fecha: 2026-04-20
+Estado: Implementada
+
+¿Qué se decidió?
+- Añadir una nueva página llamada "Carta Completa" (pages/7_📖_Carta_Completa.py)
+  donde los administradores y usuarios pueden ver todos los platos cargados
+  y realizar un pedido saltándose el motor de recomendación heurístico.
+
+¿Por qué se tomó esta decisión?
+- Era necesario proporcionar a los usuarios la autonomía de seleccionar su
+  menú sin depender siempre del recomendador, para casos donde ya saben 
+  qué quieren comer.
+
+Cambios técnicos:
+- Se añadió un listado renderizado con componentes Streamlit nativos
+  (st.checkbox) vinculados a st.session_state para mantener la cuenta de
+  los platos en la selección actual.
+- Se implementó un panel lateral estático para visualizar el "carrito" o
+  pedido en progreso.
+- Se integró create_pedido de utils.database al darle a "Hacer Pedido".
+- Se añadió \`pages/7_📖_Carta_Completa.py\` al archivo de enrutamiento \`app.py\`
+  entre Recomendaciones e Historial.
+
+Archivos creados/modificados:
+  pages/7_📖_Carta_Completa.py (NUEVO) — Interfaz de "carrito"
+  app.py (MODIFICADO) — Agregado al Sidebar
+
+------------------------------------------------------------------------------
+DECISIÓN #15: Formulario de Evaluación y tabla evaluaciones_menus
+------------------------------------------------------------------------------
+Fecha: 2026-04-20
+Estado: Implementada
+
+¿Qué se decidió?
+- Crear una nueva tabla SQLite 'evaluaciones_menus' para recoger feedback
+  estructurado del usuario sobre cada menú recomendado.
+- Insertar un formulario de evaluación (st.form) dentro de la página de
+  Recomendaciones, justo tras el menú ganador y antes de las alternativas.
+
+¿Por qué se tomó esta decisión?
+- El futuro modelo de Machine Learning necesita datos de entrenamiento
+  etiquetados con la percepción real del usuario.
+- El formulario captura 3 señales clave:
+    1. Satisfacción general (1-5)
+    2. Relación calidad-precio (1-5)
+    3. ¿Elegiría realmente este menú? (Sí/No)
+- Además, cada registro persiste el contexto completo de la recomendación:
+  platos, precio, calorías, score heurístico, tipo de recomendación
+  ('heuristic' / futuro 'ml') y las restricciones activas del usuario.
+
+Esquema de la tabla evaluaciones_menus:
+  id                  INTEGER PK AUTOINCREMENT
+  username            TEXT NOT NULL
+  platos              TEXT NOT NULL (JSON)
+  precio              REAL NOT NULL
+  calorias            INTEGER NOT NULL
+  score               REAL NOT NULL
+  recommendation_type TEXT NOT NULL DEFAULT 'heuristic'
+  restricciones_json  TEXT DEFAULT '{}'
+  satisfaccion        INTEGER NOT NULL CHECK(1..5)
+  calidad_precio      INTEGER NOT NULL CHECK(1..5)
+  elegiria_real       BOOLEAN NOT NULL DEFAULT 0
+  fecha               TEXT NOT NULL DEFAULT datetime('now')
+
+Archivos creados/modificados:
+  utils/database.py (MODIFICADO) — Nueva tabla + create_evaluacion()
+                                   + get_all_evaluaciones()
+  pages/4_Recomendaciones.py (MODIFICADO) — Formulario de evaluación
+
+================================================================================
+                          GUÍA DE INSTALACIÓN DEL PROYECTO
+================================================================================
+
+Este apartado documenta paso a paso cómo se ha montado el entorno de
+desarrollo del proyecto MenuMatch desde cero.
+
+--- Paso 1: Requisitos previos ---
+  • Python 3.10 o superior instalado en el sistema
+  • pip (gestor de paquetes de Python, incluido con Python)
+  • Git (opcional, para control de versiones)
+  • Editor de código (VS Code recomendado)
+
+--- Paso 2: Crear la carpeta del proyecto ---
+  Abrir una terminal (PowerShell en Windows) y ejecutar:
+
+    mkdir C:\TFG
+    cd C:\TFG
+
+--- Paso 3: Crear un entorno virtual de Python ---
+  Se usa un entorno virtual (.venv) para aislar las dependencias del proyecto
+  y no contaminar la instalación global de Python.
+
+    python -m venv .venv
+
+  Activar el entorno virtual:
+    (Windows PowerShell)  .\.venv\Scripts\Activate.ps1
+    (Windows CMD)         .\.venv\Scripts\activate.bat
+    (Linux/macOS)         source .venv/bin/activate
+
+  Nota: Cada vez que se abre una nueva terminal, hay que volver a activar
+  el entorno virtual antes de trabajar en el proyecto.
+
+--- Paso 4: Instalar las dependencias ---
+  Con el entorno virtual activado, instalar Streamlit y las librerías:
+
+    pip install streamlit
+    pip install bcrypt
+    pip install pandas
+    pip install pillow
+
+  Streamlit instala automáticamente muchas dependencias transitivas como
+  numpy, pyarrow, tornado, etc.
+
+--- Paso 5: Congelar las dependencias ---
+  Para documentar las versiones exactas de todas las librerías instaladas:
+
+    pip freeze > requirements.txt
+
+  Esto genera un archivo requirements.txt que permite reproducir el entorno
+  exacto en otro ordenador con:
+
+    pip install -r requirements.txt
+
+--- Paso 6: Configurar el tema de Streamlit ---
+  Crear la carpeta y archivo de configuración:
+
+    mkdir .streamlit
+    (crear archivo .streamlit/config.toml con el contenido del tema oscuro)
+
+  Contenido de .streamlit/config.toml:
+    [theme]
+    primaryColor = "#00D4AA"
+    backgroundColor = "#0E1117"
+    secondaryBackgroundColor = "#1A1D24"
+    textColor = "#FAFAFA"
+    font = "sans serif"
+
+    [browser]
+    gatherUsageStats = false
+
+--- Paso 7: Crear la estructura de carpetas ---
+
+    mkdir pages
+    mkdir utils
+    mkdir data
+    mkdir assets
+    mkdir static
+
+  Y crear los archivos __init__.py necesarios:
+    (crear utils/__init__.py vacío o con imports)
+
+--- Paso 8: Primera ejecución ---
+
+    streamlit run app.py
+
+  Esto arranca el servidor local en http://localhost:8501
+
+--- Dependencias principales del proyecto (requirements.txt) ---
+
+  Librería          | Versión    | Uso
+  ──────────────────┼────────────┼──────────────────────────────────
+  streamlit         | 1.54.0     | Framework web principal
+  bcrypt            | >=4.0.0    | Hasheo seguro de contraseñas
+  pandas            | 2.3.3      | Manipulación de datos tabulares
+  pillow            | 12.1.0     | Procesamiento de imágenes
+  numpy             | 2.4.2      | Cálculos numéricos (dep. pandas)
+  pyarrow           | 23.0.0     | Backend de datos de Streamlit
+  requests          | 2.32.5     | Peticiones HTTP (dep. streamlit)
+  sqlite3           | (built-in) | Base de datos (incluido en Python)
+
+
+================================================================================
+                       COMANDOS DE CONSOLA MÁS IMPORTANTES
+================================================================================
+
+A continuación se listan los comandos más relevantes que se han utilizado
+durante el desarrollo del proyecto, organizados por categoría.
+
+--- Entorno virtual ---
+
+  # Crear entorno virtual
+  python -m venv .venv
+
+  # Activar entorno virtual (Windows PowerShell)
+  .\.venv\Scripts\Activate.ps1
+
+  # Desactivar entorno virtual
+  deactivate
+
+--- Instalación de paquetes ---
+
+  # Instalar Streamlit (framework web)
+  pip install streamlit
+
+  # Instalar bcrypt (hasheo de contraseñas)
+  pip install bcrypt
+
+  # Instalar pandas (manipulación de datos)
+  pip install pandas
+
+  # Instalar pillow (procesamiento de imágenes)
+  pip install pillow
+
+  # Instalar TODAS las dependencias desde requirements.txt
+  pip install -r requirements.txt
+
+  # Generar archivo de dependencias con versiones exactas
+  pip freeze > requirements.txt
+
+  # Ver paquetes instalados
+  pip list
+
+--- Ejecución de la aplicación ---
+
+  # Arrancar la aplicación Streamlit (modo desarrollo)
+  streamlit run app.py
+
+  # Arrancar en un puerto específico
+  streamlit run app.py --server.port 8502
+
+  # Arrancar sin abrir el navegador automáticamente
+  streamlit run app.py --server.headless true
+
+--- Git (control de versiones) ---
+
+  # Inicializar repositorio
+  git init
+
+  # Añadir todos los archivos
+  git add .
+
+  # Hacer commit
+  git commit -m "Descripción del cambio"
+
+  # Ver estado de los cambios
+  git status
+
+  # Ver historial de commits
+  git log --oneline -10
+
+--- Inspección de la base de datos SQLite ---
+
+  # Abrir la base de datos con la herramienta sqlite3 de línea de comandos
+  # (requiere sqlite3 instalado o usar Python directamente)
+  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); print(conn.execute('SELECT * FROM usuarios').fetchall())"
+
+  # Consultar usuarios
+  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT id, username, role FROM usuarios').fetchall()]"
+
+  # Consultar menús
+  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT id, nombre, precio FROM menus').fetchall()]"
+
+  # Consultar pedidos
+  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT * FROM pedidos').fetchall()]"
+
+--- Utilidades de desarrollo ---
+
+  # Limpiar caché de Python
+  Remove-Item -Recurse -Force utils\__pycache__
+
+  # Ver estructura del proyecto
+  tree /F /A
+
+
+================================================================================
+                       CREACIÓN DE LA BASE DE DATOS (SQLITE)
+================================================================================
+
+Este apartado documenta cómo se creó la base de datos del proyecto y su
+evolución desde almacenamiento JSON hasta SQLite.
+
+--- Evolución del almacenamiento de datos ---
+
+  FASE 1 (Feb 2026): Almacenamiento en JSON
+  ├── data/users.json   → Usuarios y contraseñas (hasheadas con bcrypt)
+  └── data/menus.json   → Platos subidos por restaurantes
+
+  FASE 2 (Mar 2026): Migración a SQLite
+  └── data/menumatch.db → Base de datos relacional con 3 tablas
+
+--- ¿Por qué se migró de JSON a SQLite? ---
+
+  JSON tenía varias limitaciones:
+  • No soporta consultas complejas (filtrar, ordenar, agrupar)
+  • Problemas de concurrencia (dos usuarios escribiendo a la vez)
+  • No tiene integridad referencial
+  • Dificultad para añadir nuevas entidades (pedidos, valoraciones)
+
+  SQLite fue elegido porque:
+  • Es una BD relacional COMPLETA integrada en Python (módulo sqlite3)
+  • NO requiere instalar ningún servidor ni software adicional
+  • Soporta transacciones ACID (atomicidad, consistencia, aislamiento,
+    durabilidad)
+  • Un solo archivo (data/menumatch.db) contiene toda la BD
+  • Fácil de migrar a PostgreSQL/MySQL en producción en el futuro
+
+--- Archivo donde se crea la base de datos ---
+
+  utils/database.py — Módulo principal de la BD
+
+--- Cómo se crea la BD automáticamente ---
+
+  La base de datos se crea automáticamente al arrancar la aplicación.
+  En app.py, la primera línea que se ejecuta es:
+
+    from utils.database import init_db
+    init_db()
+
+  Esto llama a la función init_db() de utils/database.py, que:
+    1. Crea la carpeta data/ si no existe
+    2. Abre (o crea) el archivo data/menumatch.db
+    3. Ejecuta los CREATE TABLE IF NOT EXISTS para las 3 tablas
+    4. Si detecta archivos JSON antiguos, migra los datos automáticamente
+
+--- Esquema SQL completo de las 3 tablas ---
+
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  TABLA: usuarios                                                │
+  ├──────────────┬──────────┬────────────────────────────────────────┤
+  │ Campo        │ Tipo     │ Detalles                               │
+  ├──────────────┼──────────┼────────────────────────────────────────┤
+  │ id           │ INTEGER  │ PRIMARY KEY AUTOINCREMENT              │
+  │ username     │ TEXT     │ UNIQUE NOT NULL                        │
+  │ password     │ TEXT     │ NOT NULL (hash bcrypt)                 │
+  │ role         │ TEXT     │ NOT NULL DEFAULT 'usuario'             │
+  │ nombre       │ TEXT     │ NOT NULL                               │
+  │ created_at   │ TEXT     │ NOT NULL DEFAULT datetime('now')       │
+  └──────────────┴──────────┴────────────────────────────────────────┘
+
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  TABLA: menus                                                     │
+  ├──────────────────┬──────────┬──────────────────────────────────────┤
+  │ Campo            │ Tipo     │ Detalles                             │
+  ├──────────────────┼──────────┼──────────────────────────────────────┤
+  │ id               │ INTEGER  │ PRIMARY KEY AUTOINCREMENT            │
+  │ nombre           │ TEXT     │ NOT NULL                             │
+  │ precio           │ REAL     │ NOT NULL                             │
+  │ calorias         │ INTEGER  │ NOT NULL                             │
+  │ categoria        │ TEXT     │ DEFAULT 'Principal'                  │
+  │ vegetariano      │ BOOLEAN  │ DEFAULT 0                            │
+  │ sin_gluten       │ BOOLEAN  │ DEFAULT 0                            │
+  │ con_lactosa      │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
+  │ con_frutos_secos │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
+  │ con_huevo        │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
+  │ bajo_sal         │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
+  │ uploaded_by      │ TEXT     │ NOT NULL (quién subió el plato)      │
+  │ uploaded_at      │ TEXT     │ NOT NULL DEFAULT datetime('now')     │
+  └──────────────────┴──────────┴──────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  TABLA: pedidos                                                 │
+  ├──────────────┬──────────┬────────────────────────────────────────┤
+  │ Campo        │ Tipo     │ Detalles                               │
+  ├──────────────┼──────────┼────────────────────────────────────────┤
+  │ id           │ INTEGER  │ PRIMARY KEY AUTOINCREMENT              │
+  │ username     │ TEXT     │ NOT NULL (usuario que hizo el pedido)  │
+  │ platos       │ TEXT     │ NOT NULL (JSON array de nombres)       │
+  │ precio       │ REAL     │ NOT NULL                               │
+  │ calorias     │ INTEGER  │ NOT NULL                               │
+  │ valoracion   │ INTEGER  │ DEFAULT 0 (0 = sin valorar, 1-5)      │
+  │ fecha        │ TEXT     │ NOT NULL DEFAULT datetime('now')       │
+  └──────────────┴──────────┴────────────────────────────────────────┘
+
+--- SQL exacto que crea las tablas ---
+
+  CREATE TABLE IF NOT EXISTS usuarios (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      username    TEXT    UNIQUE NOT NULL,
+      password    TEXT    NOT NULL,
+      role        TEXT    NOT NULL DEFAULT 'usuario',
+      nombre      TEXT    NOT NULL,
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS menus (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre           TEXT    NOT NULL,
+      precio           REAL    NOT NULL,
+      calorias         INTEGER NOT NULL,
+      categoria        TEXT    DEFAULT 'Principal',
+      vegetariano      BOOLEAN DEFAULT 0,
+      sin_gluten       BOOLEAN DEFAULT 0,
+      con_lactosa      BOOLEAN DEFAULT 0,
+      con_frutos_secos BOOLEAN DEFAULT 0,
+      con_huevo        BOOLEAN DEFAULT 0,
+      bajo_sal         BOOLEAN DEFAULT 0,
+      uploaded_by      TEXT    NOT NULL,
+      uploaded_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS pedidos (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      username    TEXT    NOT NULL,
+      platos      TEXT    NOT NULL,
+      precio      REAL    NOT NULL,
+      calorias    INTEGER NOT NULL,
+      valoracion  INTEGER DEFAULT 0,
+      fecha       TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+--- Configuración de la conexión ---
+
+  Al conectar a la BD, se activan dos PRAGMAs importantes:
+
+  PRAGMA journal_mode=WAL;
+    → Modo "Write-Ahead Logging" que permite lecturas concurrentes mientras
+      se escribe, mejorando el rendimiento en aplicaciones multiusuario.
+
+  PRAGMA foreign_keys=ON;
+    → Activa la integridad referencial (claves foráneas) que SQLite
+      tiene desactivada por defecto.
+
+--- Proceso de migración de JSON a SQLite ---
+
+  La migración es AUTOMÁTICA y transparente. Al arrancar la app:
+
+  1. init_db() crea las tablas si no existen
+  2. Si existe data/users.json Y la tabla usuarios está VACÍA:
+     → Lee el JSON, inserta los usuarios en la tabla
+     → Renombra users.json a users.json.bak (backup)
+  3. Si existe data/menus.json Y la tabla menus está VACÍA:
+     → Lee el JSON, inserta los menús en la tabla
+     → Renombra menus.json a menus.json.bak (backup)
+
+  De esta forma, la primera vez que se arranca la app tras la migración,
+  los datos se importan automáticamente sin pérdida.
+
+--- Ubicación del archivo de la BD ---
+
+  data/menumatch.db
+
+  Este archivo es BINARIO y contiene toda la información del sistema.
+  Se puede inspeccionar con herramientas como DB Browser for SQLite
+  o directamente desde Python con el módulo sqlite3.
+
+
+================================================================================
+                           PRÓXIMAS DECISIONES PENDIENTES
+================================================================================
+
+[x] Algoritmo de recomendación — Heurístico basado en reglas (Decisión #13)
+[x] Formato de entrada de menús — CSV + manual (Decisión #10)
+[x] Persistencia de datos — JSON compartido (Decisión #10) → SQLite (Decisión #11)
+[x] Autenticación de usuarios — Implementada (Decisión #6)
+[x] Sidebar y logout — Implementada (Decisión #7, mejorada en #9)
+[x] CRUD de usuarios para admin — Implementada (Decisión #8)
+[x] Navegación por roles — Implementada (Decisión #9)
+[x] Base de datos relacional — SQLite con 3 tablas (Decisión #11)
+[ ] Despliegue (Streamlit Cloud, Heroku, AWS)
+
+================================================================================
+                              HISTORIAL DE CAMBIOS
+================================================================================
+
+2026-02-09 | Creación inicial del documento
+           | Documentadas decisiones iniciales del proyecto
+
+2026-02-10 | Añadida Decisión #6: Sistema de autenticación con 3 roles
+           | Implementación completa de login, registro y control de acceso
+
+2026-02-10 | Añadida Decisión #7: Sidebar compartido con botón de logout
+           | Función render_sidebar() centralizada en utils/auth.py
+           | Añadida Decisión #8: CRUD completo en panel de administración
+           | admin_create_user, update_user_nombre, delete_user
+
+2026-02-10 | Añadida Decisión #9: Navegación por roles con st.navigation()
+           | Sustituye render_sidebar() por control centralizado en app.py
+           | Cada rol solo ve las páginas a las que tiene acceso
+
+2026-02-10 | Añadida Decisión #10: Menús compartidos vía data/menus.json
+           | Los platos subidos por restaurantes ahora son visibles para todos
+           | Acciones rápidas del Inicio adaptadas al rol del usuario
+
+2026-03-02 | Añadida Decisión #11: Migración a SQLite
+           | Creado utils/database.py con esquema de 3 tablas
+           | Reescritos auth.py y menu_storage.py para usar SQL
+           | Nueva funcionalidad de pedidos con valoración
+           | Historial ahora lee de BD en vez de session_state
+           | Migración automática de datos JSON existentes
+
+2026-03-03 | Añadidos 3 apéndices al documento:
+           | A. Guía de Instalación (pasos 1-8, tabla de dependencias)
+           | B. Comandos de Consola (entorno, paquetes, ejecución, git, BD)
+           | C. Creación de la Base de Datos (esquema SQL, PRAGMAs, migración)
+
+2026-04-15 | Añadida Decisión #12: Restricciones Alimentarias para ML
+           | 4 nuevas columnas en tabla menus: con_lactosa, con_frutos_secos,
+           | con_huevo, bajo_sal
+           | Migración ALTER TABLE idempotente en database.py
+           | UI actualizada con 6 checkboxes (2 filas × 3 columnas)
+           | Formato CSV actualizado con las 10 columnas completas
+
+2026-04-15 | Añadida Decisión #13: Motor de Recomendación Heurístico
+           | Creado utils/recomendador_heuristico.py con filtrado + scoring
+           | Reescrita pages/4_🎯_Recomendaciones.py con sidebar integrado
+           | Fórmula: score = w1×satisf - w2×precio_norm - w3×desv_cal
+           | Generación de combinaciones Primero+Segundo automática
+           | Sección de transparencia con desglose del algoritmo
+
+2026-04-20 | Añadida Decisión #14: Carta Completa
+           | Interfaz de carrito en nueva página pages/7_📖_Carta_Completa.py
+           | Modificado app.py para añadirla al navbar
+
+2026-04-20 | Añadida Decisión #15: Formulario de Evaluación (ML Feedback)
+           | Nueva tabla evaluaciones_menus en SQLite
+           | Funciones create_evaluacion() y get_all_evaluaciones()
+           | Formulario con 3 preguntas en pages/4_Recomendaciones.py
+
+================================================================================
