@@ -203,7 +203,7 @@ with tab_register:
                     _, _, user_data = login_user(reg_username, reg_password)
                     if user_data:
                         set_current_user(user_data)
-                    st.switch_page("pages/1_Inicio.py")
+                    st.rerun()
                 else:
                     st.error(f"{message}")
 
