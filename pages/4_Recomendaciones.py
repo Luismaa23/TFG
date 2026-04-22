@@ -13,6 +13,7 @@ from utils import inject_custom_css, section_header, empty_state
 from utils.auth import require_auth, ROLE_ADMIN, ROLE_USUARIO
 from utils.menu_storage import get_all_menus
 from utils.database import create_pedido, create_evaluacion
+from utils.google_sheets import save_to_google_sheets
 from utils.recomendador_heuristico import (
     recomendar_menu_heuristico,
     recomendar_top_n,
@@ -433,6 +434,26 @@ else:
                         restricciones=restricciones_snapshot,
                         recommendation_type="heuristic",
                     )
+
+                    # Persistencia complementaria en Google Sheets
+                    try:
+                        save_to_google_sheets({
+                            "eval_id": eval_id,
+                            "username": user["username"],
+                            "platos": platos_list,
+                            "precio": menu_optimo.get("precio", 0),
+                            "calorias": menu_optimo.get("calorias", 0),
+                            "score": score,
+                            "satisfaccion": satisfaccion,
+                            "calidad_precio": calidad_precio_val,
+                            "elegiria_real": (elegiria_real == "Sí"),
+                            "restricciones": restricciones_snapshot,
+                            "recommendation_type": "heuristic",
+                        })
+                    except Exception:
+                        # Si Google Sheets falla, la app sigue con BD local
+                        pass
+
                     st.success(
                         f"Gracias. Tu valoración #{eval_id} se ha guardado "
                         f"para el estudio."

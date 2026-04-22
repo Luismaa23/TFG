@@ -26,6 +26,7 @@ Fecha de inicio: 2026-02-09
 13. Motor de Recomendación Heurístico (Basado en Reglas)
 14. Carta Completa para visualización sin recomendaciones
 15. Formulario de Evaluación y tabla evaluaciones_menus (Feedback ML)
+16. Persistencia Automática en Google Sheets (Backup Externo)
 
 APÉNDICES:
 A. Guía de Instalación del Proyecto
@@ -621,6 +622,60 @@ Archivos creados/modificados:
                                    + get_all_evaluaciones()
   pages/4_Recomendaciones.py (MODIFICADO) — Formulario de evaluación
 
+------------------------------------------------------------------------------
+DECISIÓN #16: Persistencia Automática en Google Sheets (Backup Externo)
+------------------------------------------------------------------------------
+Fecha: 2026-04-22
+Estado: Implementada
+
+¿Qué se decidió?
+- Añadir una capa de persistencia complementaria en Google Sheets que
+  sincroniza cada evaluación de menú en una hoja de cálculo externa
+  llamada 'MenuMatch_Data'.
+- La conexión se realiza mediante gspread + google-auth, leyendo las
+  credenciales de cuenta de servicio desde st.secrets["GOOGLE_CREDENTIALS"].
+- La función save_to_google_sheets() se invoca justo después del
+  INSERT en SQLite, envuelta en try-except para no bloquear la app.
+
+¿Por qué se tomó esta decisión?
+- Streamlit Community Cloud utiliza un sistema de archivos efímero:
+  cada redeploy o reinicio del servidor borra el archivo SQLite.
+- Las evaluaciones de los usuarios son datos valiosos para el futuro
+  modelo de ML y no deben perderse entre reinicios.
+- Google Sheets actúa como almacenamiento persistente y accesible,
+  permitiendo además consultar los datos desde cualquier navegador
+  sin necesidad de acceder al servidor.
+- El patrón "fire-and-forget" con try-except garantiza que un fallo
+  en la API de Google nunca interrumpe la experiencia del usuario.
+
+Implementación técnica:
+- Nuevo módulo: utils/google_sheets.py
+  * _get_google_sheets_client(): Crea cliente gspread autorizado
+  * save_to_google_sheets(datos): Añade fila a la hoja de cálculo
+- Dependencias nuevas: gspread>=6.0.0, google-auth>=2.20.0
+- Credenciales: Se leen de st.secrets["GOOGLE_CREDENTIALS"] (JSON
+  de cuenta de servicio de Google Cloud) con scopes de Sheets y Drive.
+
+Columnas de la hoja 'MenuMatch_Data':
+  eval_id | username | platos (JSON) | precio | calorias | score |
+  recommendation_type | restricciones (JSON) | satisfaccion |
+  calidad_precio | elegiria_real | fecha
+
+Configuración necesaria en .streamlit/secrets.toml (local) o en
+Streamlit Cloud (Settings > Secrets):
+  [GOOGLE_CREDENTIALS]
+  type = "service_account"
+  project_id = "..."
+  private_key_id = "..."
+  private_key = "..."
+  client_email = "..."
+  ...
+
+Archivos creados/modificados:
+  utils/google_sheets.py (NUEVO) — Cliente gspread + save_to_google_sheets()
+  pages/4_Recomendaciones.py (MODIFICADO) — Llamada tras create_evaluacion()
+  requirements.txt (MODIFICADO) — gspread + google-auth
+
 ================================================================================
                           GUÍA DE INSTALACIÓN DEL PROYECTO
 ================================================================================
@@ -717,6 +772,8 @@ desarrollo del proyecto MenuMatch desde cero.
   bcrypt            | >=4.0.0    | Hasheo seguro de contraseñas
   pandas            | 2.3.3      | Manipulación de datos tabulares
   pillow            | 12.1.0     | Procesamiento de imágenes
+  gspread           | >=6.0.0    | Cliente Python para Google Sheets (Decisión #16)
+  google-auth       | >=2.20.0   | Autenticación OAuth2 con Google (Decisión #16)
   numpy             | 2.4.2      | Cálculos numéricos (dep. pandas)
   pyarrow           | 23.0.0     | Backend de datos de Streamlit
   requests          | 2.32.5     | Peticiones HTTP (dep. streamlit)
@@ -1000,6 +1057,7 @@ evolución desde almacenamiento JSON hasta SQLite.
 [x] CRUD de usuarios para admin — Implementada (Decisión #8)
 [x] Navegación por roles — Implementada (Decisión #9)
 [x] Base de datos relacional — SQLite con 3 tablas (Decisión #11)
+[x] Persistencia externa Google Sheets — Implementada (Decisión #16)
 [ ] Despliegue (Streamlit Cloud, Heroku, AWS)
 
 ================================================================================
@@ -1059,5 +1117,11 @@ evolución desde almacenamiento JSON hasta SQLite.
            | Nueva tabla evaluaciones_menus en SQLite
            | Funciones create_evaluacion() y get_all_evaluaciones()
            | Formulario con 3 preguntas en pages/4_Recomendaciones.py
+
+2026-04-22 | Añadida Decisión #16: Persistencia en Google Sheets
+           | Nuevo módulo utils/google_sheets.py con save_to_google_sheets()
+           | Dependencias: gspread>=6.0.0, google-auth>=2.20.0
+           | Integración en pages/4_Recomendaciones.py tras create_evaluacion()
+           | Patrón fire-and-forget con try-except para resiliencia
 
 ================================================================================
