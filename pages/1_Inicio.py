@@ -72,7 +72,7 @@ if user["role"] in [ROLE_RESTAURANTE, ROLE_ADMIN]:
     quick_actions.append({
         "title": "Cargar Menús",
         "desc": "Sube archivos CSV o añade platos manualmente",
-        "page": "pages/2__Cargar_Menu.py",
+        "page": "pages/2_Cargar_Menu.py",
         "key": "btn_menu",
     })
 
@@ -81,13 +81,13 @@ if user["role"] in [ROLE_USUARIO, ROLE_ADMIN]:
     quick_actions.append({
         "title": "Configurar Restricciones",
         "desc": "Define presupuesto, calorías y dietas",
-        "page": "pages/3__Restricciones.py",
+        "page": "pages/3_Restricciones.py",
         "key": "btn_restricciones",
     })
     quick_actions.append({
         "title": "Ver Recomendaciones",
         "desc": "Obtén las mejores combinaciones de menú",
-        "page": "pages/4__Recomendaciones.py",
+        "page": "pages/4_Recomendaciones.py",
         "key": "btn_recomendaciones",
     })
 
