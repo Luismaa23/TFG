@@ -49,30 +49,6 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    # ── Presupuesto ──
-    st.markdown("#####  Presupuesto")
-    presupuesto = st.slider(
-        "Presupuesto máximo (€)",
-        min_value=5.0,
-        max_value=30.0,
-        value=defaults.get("presupuesto_max", 15.0),
-        step=0.50,
-        format="€%.2f",
-    )
-
-    # ── Calorías ──
-    st.markdown("#####  Calorías Objetivo")
-    calorias_objetivo = st.number_input(
-        "Calorías objetivo (kcal)",
-        min_value=300,
-        max_value=2000,
-        value=defaults.get("calorias_max", 700),
-        step=50,
-        help="El algoritmo penaliza los menús que se alejen de este valor",
-    )
-
-    st.divider()
-
     # ── Restricciones dietéticas ──
     st.markdown("#####  Restricciones Dietéticas")
 
@@ -131,6 +107,28 @@ if len(menus) == 0:
         "antes de poder generar recomendaciones."
     )
 else:
+    # ── Ajustes de presupuesto y calorías ──
+    with st.expander("⚙️ Ajustar presupuesto y calorías", expanded=False):
+        col_presupuesto, col_calorias = st.columns(2)
+        with col_presupuesto:
+            presupuesto = st.slider(
+                "Presupuesto máximo (€)",
+                min_value=5.0,
+                max_value=30.0,
+                value=defaults.get("presupuesto_max", 15.0),
+                step=0.50,
+                format="€%.2f",
+            )
+        with col_calorias:
+            calorias_objetivo = st.number_input(
+                "Calorías objetivo (kcal)",
+                min_value=300,
+                max_value=2000,
+                value=defaults.get("calorias_max", 700),
+                step=50,
+                help="El algoritmo penaliza los menús que se alejen de este valor",
+            )
+
     # ── Resumen de filtros activos ──
     filtros_resumen = []
     filtros_resumen.append(f" Máx €{presupuesto:.0f}")

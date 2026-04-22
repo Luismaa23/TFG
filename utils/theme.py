@@ -21,7 +21,6 @@ COLORS = {
 CUSTOM_CSS = """
 <style>
 /* Ocultar elementos por defecto de Streamlit que ensucian la UI */
-header {visibility: hidden;}
 #MainMenu {visibility: hidden;}
 
 /* Estilo global para evitar parpadeos y unificar fondo */
