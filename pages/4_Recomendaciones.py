@@ -371,7 +371,7 @@ else:
                         precio=menu_optimo.get("precio", 0),
                         calorias=menu_optimo.get("calorias", 0),
                     )
-                    st.success(f" ¡Pedido #{pedido_id} registrado correctamente!")
+                    st.success("✅ ¡Tu pedido ha sido registrado correctamente!")
 
             with col_regen:
                 if st.button(" Regenerar", use_container_width=True):

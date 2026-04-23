@@ -135,6 +135,6 @@ else:
                 )
                 # Resetea la lista de ids después de pedir
                 st.session_state.pedido_actual_ids = []
-                st.success(f" ¡Pedido #{pedido_id} registrado correctamente!")
+                st.success("✅ ¡Tu pedido ha sido registrado correctamente!")
         
         st.markdown("</div>", unsafe_allow_html=True)
