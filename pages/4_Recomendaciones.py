@@ -189,7 +189,11 @@ else:
         }
 
         # Generar combinaciones de menú a partir de los platos
-        combinaciones = generar_combinaciones_menu(menus)
+        combinaciones = generar_combinaciones_menu(
+                    menus,
+                    presupuesto_hint=presupuesto,
+                    calorias_hint=calorias_objetivo,
+                )
 
         # Ejecutar motor heurístico
         resultado = recomendar_menu_heuristico(
