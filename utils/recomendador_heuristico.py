@@ -70,9 +70,20 @@ _CAT_POSTRES  = {"Postre", "postre"}
 _CAT_ACOMP    = {"Acompañamiento", "Guarnicion", "acompañamiento", "guarnicion"}
 _CAT_UNICOS   = {"Plato Único", "plato único", "Unico", "unico", "Único", "único"}
 
-# Categorías válidas para formar una plantilla 'Plato Único' de forma semántica.
-# Postres y Acompañamientos quedan EXCLUIDOS: no son comidas completas.
-_CAT_VALIDAS_PLATO_UNICO = _CAT_PRIMEROS | _CAT_SEGUNDOS | _CAT_UNICOS
+# Categorías EXCLUIDAS de la plantilla 'Plato Único' (filtro semántico inclusivo).
+# Se compara en minúsculas y con singular/plural para ser robusto ante variaciones
+# de escritura en la base de datos.
+_CAT_EXCLUIDAS_PLATO_UNICO = {
+    "postre", "postres",
+    "acompañamiento", "acompañamientos",
+    "bebida", "bebidas",
+    "pan",
+}
+
+# Hard-ban de Plato Único: umbrales mínimos de calidad nutricional/económica.
+# Un plato que no los supere no puede recomendarse como comida completa.
+_MIN_KCAL_PLATO_UNICO  = 300   # kcal mínimas
+_MIN_PRECIO_PLATO_UNICO = 2.00  # € mínimo
 
 
 # ─── Filtrado estricto ────────────────────────────────────────────────────────
@@ -166,22 +177,12 @@ def _calcular_score(
     # ── Precio normalizado (0 = gratis, 1 = agota el presupuesto) ──
     precio_normalizado = precio / presupuesto if presupuesto > 0 else 1.0
 
-    # ── Penalización calórica asimétrica ──────────────────────────────
-    # La desviación base es proporcional a la distancia al objetivo.
-    # Si hay un DÉFICIT SEVERO (el menú aporta < 60% de las kcal objetivo)
-    # se amplifica ×3 para destruir cualquier ventaja de precio o plantilla.
-    # Esto evita que ítems insignificantes (pan, postre) sean recomendados
-    # para objetivos calóricos normales o altos.
-    if calorias_objetivo > 0:
-        desviacion_raw = (calorias_objetivo - calorias) / calorias_objetivo
-        if desviacion_raw > _UMBRAL_DEFICIT_SEVERO:
-            # Déficit severo: el menú está muy por debajo del objetivo
-            desviacion_calorica = abs(desviacion_raw) * _MULTIPLICADOR_DEFICIT
-        else:
-            # Desviación normal (déficit leve o exceso): penalización estándar
-            desviacion_calorica = abs(calorias - calorias_objetivo) / calorias_objetivo
-    else:
-        desviacion_calorica = 0.0
+    # ── Penalización calórica estándar ────────────────────────────────
+    desviacion_calorica = (
+        abs(calorias - calorias_objetivo) / calorias_objetivo
+        if calorias_objetivo > 0
+        else 0.0
+    )
 
     score = (
         (w1 * satisfaccion_media)
@@ -190,16 +191,22 @@ def _calcular_score(
     )
 
     # ── Bonus de plantilla (desempate únicamente) ─────────────────────
-    # El bonus es mínimo (0.05) y solo se aplica a Platos Únicos en
-    # contexto de bajo presupuesto o bajas calorías. Su único papel es
-    # romper empates entre menús de puntuación muy similar; jamás debe
-    # compensar un déficit calórico severo.
     contexto_bajo = (
         presupuesto < _UMBRAL_PRESUPUESTO_BAJO
         or calorias_objetivo < _UMBRAL_CALORIAS_BAJAS
     )
     if plantilla == "Plato Único" and contexto_bajo:
         score += _BONUS_PLATO_UNICO
+
+    # ── PENALIZACIÓN MULTIPLICATIVA POR DÉFICIT CALÓRICO SEVERO ───────
+    # Si el menú aporta menos del 60% de las kcal objetivo, el score
+    # total se multiplica por 0.1 (hundimiento drástico).
+    # Esta barrera es POSTERIOR a cualquier bonus y precio, de modo que
+    # ningún ahorro económico ni bonus de plantilla puede compensarla.
+    # Es la única forma de garantizar que un ítem de 150 kcal nunca
+    # supere a un menú de 700-900 kcal en contextos normales.
+    if calorias_objetivo > 0 and calorias < 0.60 * calorias_objetivo:
+        score *= 0.1
 
     return score
 
@@ -251,12 +258,19 @@ def generar_combinaciones_menu(
     postres  = [p for p in platos if p.get("categoria", "") in _CAT_POSTRES]
     acomps   = [p for p in platos if p.get("categoria", "") in _CAT_ACOMP]
 
-    # FILTRO SEMÁNTICO: solo Primeros, Segundos y Platos Únicos reales
-    # pueden recomendarse como menú completo de un solo ítem.
-    # Postres y Acompañamientos quedan excluidos de esta plantilla.
+    # ── FILTRO SEMÁNTICO INCLUSIVO (robusto a mayúsculas y plurales) ──
+    # Se excluyen por categoría los ítems que nunca pueden ser una comida
+    # completa por sí solos: postres, acompañamientos, bebidas y pan.
+    # La comparación se hace en minúsculas para evitar fallos por variaciones
+    # de escritura en la base de datos.
+    # Además, se aplica un HARD-BAN nutricional/económico: un plato con
+    # menos de 300 kcal o menos de 2.00€ no puede ser un Plato Único,
+    # independientemente de su categoría.
     candidatos_plato_unico = [
         p for p in platos
-        if p.get("categoria", "") in _CAT_VALIDAS_PLATO_UNICO
+        if p.get("categoria", "").lower() not in _CAT_EXCLUIDAS_PLATO_UNICO
+        and p.get("calorias", 0) >= _MIN_KCAL_PLATO_UNICO
+        and p.get("precio", 0) >= _MIN_PRECIO_PLATO_UNICO
     ]
 
     contexto_bajo = (
