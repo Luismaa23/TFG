@@ -1,15 +1,29 @@
 """
 MenuMatch - Motor de Recomendación Heurístico (Basado en Reglas)
 
-Decisión #13 (Rev. 2): Motor de recomendación con Plantillas de Menú.
+Decisión #13 (Rev. 3): Motor de recomendación con Plantillas de Menú
+y scoring balanceado.
 
-Refactorización del algoritmo original para eliminar el sesgo hacia
-combinaciones "Primero + Segundo". El nuevo enfoque utiliza Plantillas
-de Menú estructuradas que cubren todos los casos de uso del usuario:
+Correcciones sobre Rev. 2:
+  1. FILTRO SEMÁNTICO: Postres y Acompañamientos NO pueden formar una
+     plantilla 'Plato Único'. Solo Primeros, Segundos y Platos Únicos
+     reales tienen esa capacidad semántica.
+
+  2. PENALIZACIÓN ASIMÉTRICA DE DÉFICIT CALÓRICO: La fórmula anterior
+     penalizaba igual el exceso que el déficit calórico. El nuevo
+     cálculo aplica una penalización exponencial (×3) cuando el menú
+     se queda MUY por debajo del objetivo (> 40% de déficit), lo que
+     destruye cualquier bonus de plantilla para ítems insignificantes
+     como un acompañamiento o un postre aislado.
+
+  3. BONUS REDUCIDO A DESEMPATE: El bonus de la plantilla 'Plato Único'
+     se reduce a un valor mínimo (0.05) para que actúe únicamente como
+     criterio de desempate entre menús de puntuación muy similar, sin
+     dominar la ecuación.
 
   PLANTILLAS SOPORTADAS:
   ┌─────────────┬──────────────────────────────────────────────────────┐
-  │ Plato Único │ 1 plato (primero, segundo o plato único real).        │
+  │ Plato Único │ Solo Primero, Segundo o Plato Único real.            │
   │             │ Priorizado cuando presupuesto < 6€ o kcal < 500.     │
   ├─────────────┼──────────────────────────────────────────────────────┤
   │ Clásico     │ 1 Primero + 1 Segundo                                │
@@ -19,15 +33,12 @@ de Menú estructuradas que cubren todos los casos de uso del usuario:
   │ Completo    │ 1 Primero + 1 Segundo + 1 (Postre o Acompañamiento)  │
   └─────────────┴──────────────────────────────────────────────────────┘
 
-  SCORING ADAPTATIVO:
-  El cálculo de la puntuación ahora detecta si el contexto del usuario
-  es de "bajo presupuesto / bajo calórico" y elimina la penalización
-  por precio en los Platos Únicos, evitando que sean injustamente
-  descartados frente a combinaciones más caras.
-
-Fórmula base de scoring:
-  score = (w1 × satisfacción_media) - (w2 × precio_normalizado)
-          - (w3 × desviación_calórica) + bonus_plantilla
+Fórmula de scoring (Rev. 3):
+  desv = |kcal_menu - kcal_objetivo| / kcal_objetivo
+  penalizacion_cal = desv × 3  si déficit > 40%  (kcal_menu < 0.6 × objetivo)
+                   = desv       en cualquier otro caso
+  score = (w1 × sat) - (w2 × precio_norm) - (w3 × penalizacion_cal)
+          + bonus_plantilla   [bonus máx. 0.05, solo desempate]
 
 Flujo de datos (MVVM):
   Vista (Página Streamlit) → recoge parámetros del usuario
@@ -39,19 +50,29 @@ from itertools import product
 
 # ─── Constantes de Plantillas ─────────────────────────────────────────────────
 
-# Umbral para activar la priorización de Plato Único
+# Umbral para activar el modo "solo Platos Únicos"
 _UMBRAL_PRESUPUESTO_BAJO = 6.0   # €
-_UMBRAL_CALORIAS_BAJAS = 500     # kcal
+_UMBRAL_CALORIAS_BAJAS   = 500   # kcal
 
-# Bonus de score aplicado a Platos Únicos en contexto de restricción baja
-_BONUS_PLATO_UNICO_BAJO_CONTEXTO = 0.25
+# Bonus de plantilla: valor mínimo para actuar solo como desempate.
+# NO debe dominar la ecuación; el objetivo calórico es el factor principal.
+_BONUS_PLATO_UNICO = 0.05
+
+# Umbral de déficit calórico a partir del cual se aplica penalización ×3.
+# Si el menú aporta menos del 60% de las kcal objetivo → déficit severo.
+_UMBRAL_DEFICIT_SEVERO = 0.40   # 40% por debajo del objetivo
+_MULTIPLICADOR_DEFICIT  = 3.0   # factor de amplificación del castigo
 
 # Categorías reconocidas por tipo
 _CAT_PRIMEROS = {"Primero", "Entrante", "primero", "entrante"}
 _CAT_SEGUNDOS = {"Segundo", "Principal", "segundo", "principal"}
-_CAT_POSTRES = {"Postre", "postre"}
-_CAT_ACOMP = {"Acompañamiento", "Guarnicion", "acompañamiento", "guarnicion"}
-_CAT_UNICOS = {"Plato Único", "plato único", "Unico", "unico", "Único", "único"}
+_CAT_POSTRES  = {"Postre", "postre"}
+_CAT_ACOMP    = {"Acompañamiento", "Guarnicion", "acompañamiento", "guarnicion"}
+_CAT_UNICOS   = {"Plato Único", "plato único", "Unico", "unico", "Único", "único"}
+
+# Categorías válidas para formar una plantilla 'Plato Único' de forma semántica.
+# Postres y Acompañamientos quedan EXCLUIDOS: no son comidas completas.
+_CAT_VALIDAS_PLATO_UNICO = _CAT_PRIMEROS | _CAT_SEGUNDOS | _CAT_UNICOS
 
 
 # ─── Filtrado estricto ────────────────────────────────────────────────────────
@@ -138,16 +159,29 @@ def _calcular_score(
     Returns:
         Puntuación heurística del menú (float). Mayor = mejor.
     """
-    precio = menu.get("precio", 0)
-    calorias = menu.get("calorias", 0)
+    precio    = menu.get("precio", 0)
+    calorias  = menu.get("calorias", 0)
     plantilla = menu.get("plantilla", "")
 
+    # ── Precio normalizado (0 = gratis, 1 = agota el presupuesto) ──
     precio_normalizado = precio / presupuesto if presupuesto > 0 else 1.0
-    desviacion_calorica = (
-        abs(calorias - calorias_objetivo) / calorias_objetivo
-        if calorias_objetivo > 0
-        else 0.0
-    )
+
+    # ── Penalización calórica asimétrica ──────────────────────────────
+    # La desviación base es proporcional a la distancia al objetivo.
+    # Si hay un DÉFICIT SEVERO (el menú aporta < 60% de las kcal objetivo)
+    # se amplifica ×3 para destruir cualquier ventaja de precio o plantilla.
+    # Esto evita que ítems insignificantes (pan, postre) sean recomendados
+    # para objetivos calóricos normales o altos.
+    if calorias_objetivo > 0:
+        desviacion_raw = (calorias_objetivo - calorias) / calorias_objetivo
+        if desviacion_raw > _UMBRAL_DEFICIT_SEVERO:
+            # Déficit severo: el menú está muy por debajo del objetivo
+            desviacion_calorica = abs(desviacion_raw) * _MULTIPLICADOR_DEFICIT
+        else:
+            # Desviación normal (déficit leve o exceso): penalización estándar
+            desviacion_calorica = abs(calorias - calorias_objetivo) / calorias_objetivo
+    else:
+        desviacion_calorica = 0.0
 
     score = (
         (w1 * satisfaccion_media)
@@ -155,17 +189,17 @@ def _calcular_score(
         - (w3 * desviacion_calorica)
     )
 
-    # ── Bonus adaptativo para Platos Únicos en contexto restrictivo ──
-    # Si el usuario tiene un presupuesto o un objetivo calórico bajos,
-    # el Plato Único es la solución natural. Sin este bonus, la fórmula
-    # de precio normalizado siempre favorece combinaciones más baratas
-    # dentro del presupuesto, ocultando injustamente los platos únicos.
+    # ── Bonus de plantilla (desempate únicamente) ─────────────────────
+    # El bonus es mínimo (0.05) y solo se aplica a Platos Únicos en
+    # contexto de bajo presupuesto o bajas calorías. Su único papel es
+    # romper empates entre menús de puntuación muy similar; jamás debe
+    # compensar un déficit calórico severo.
     contexto_bajo = (
         presupuesto < _UMBRAL_PRESUPUESTO_BAJO
         or calorias_objetivo < _UMBRAL_CALORIAS_BAJAS
     )
     if plantilla == "Plato Único" and contexto_bajo:
-        score += _BONUS_PLATO_UNICO_BAJO_CONTEXTO
+        score += _BONUS_PLATO_UNICO
 
     return score
 
@@ -216,10 +250,14 @@ def generar_combinaciones_menu(
     segundos = [p for p in platos if p.get("categoria", "") in _CAT_SEGUNDOS]
     postres  = [p for p in platos if p.get("categoria", "") in _CAT_POSTRES]
     acomps   = [p for p in platos if p.get("categoria", "") in _CAT_ACOMP]
-    unicos_reales = [p for p in platos if p.get("categoria", "") in _CAT_UNICOS]
 
-    # Candidatos para la plantilla "Plato Único": cualquier plato individual
-    candidatos_plato_unico = platos
+    # FILTRO SEMÁNTICO: solo Primeros, Segundos y Platos Únicos reales
+    # pueden recomendarse como menú completo de un solo ítem.
+    # Postres y Acompañamientos quedan excluidos de esta plantilla.
+    candidatos_plato_unico = [
+        p for p in platos
+        if p.get("categoria", "") in _CAT_VALIDAS_PLATO_UNICO
+    ]
 
     contexto_bajo = (
         presupuesto_hint < _UMBRAL_PRESUPUESTO_BAJO
