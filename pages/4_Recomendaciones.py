@@ -452,10 +452,7 @@ else:
                         # Si Google Sheets falla, la app sigue con BD local
                         pass
 
-                    st.success(
-                        f"Gracias. Tu valoración #{eval_id} se ha guardado "
-                        f"para el estudio."
-                    )
+                    st.success("✅ ¡Gracias! Tu valoración ha sido enviada correctamente.")
 
             if len(top_n) > 1:
                 st.markdown("<br>", unsafe_allow_html=True)
