@@ -489,19 +489,24 @@ Estado: Implementada
 - Los pesos (w1, w2, w3) son configurables desde la UI, lo que
   permite experimentar con distintas prioridades.
 
-Fórmula de scoring:
-  score = (w1 × satisfacción_media) - (w2 × precio_normalizado)
-          - (w3 × desviación_calórica)
+Fórmula de scoring (Rev. 4 - Simplificada a Baseline):
+  score = 1.0 - desviación_calórica - (precio_menu * 0.001)
+
+  Si calorías_menu < 0.60 * calorías_objetivo:
+    score = score * 0.1 (Penalización drástica por déficit severo)
 
   Donde:
-    precio_normalizado  = precio_menu / presupuesto_usuario
     desviación_calórica = |calorías_menu - calorías_objetivo| / calorías_objetivo
-    satisfacción_media  = 3.0 (simulada, futura integración con ML)
 
-Pesos por defecto:
-    w1 = 0.5 (satisfacción — mayor peso)
-    w2 = 0.3 (precio — peso medio)
-    w3 = 0.2 (calorías — peso menor)
+¿Por qué se simplificó (Rev. 4)?
+- Por indicación académica, el motor original era "demasiado agresivo" al premiar el ahorro de dinero, lo que provocaba sesgos hacia menús muy baratos pero insuficientes.
+- El presupuesto ahora actúa únicamente como límite absoluto (filtro previo), no como fuente de puntos.
+- Las calorías_objetivo dominan el 95% del score (score base = 1.0 - desviación).
+- El precio solo se usa como un factor de desempate minúsculo (-0.001 por céntimo/euro) para cuando dos menús empatan en calorías.
+- Se mantuvieron las plantillas y el hard-ban de postres/panes aislados para preservar el realismo del menú.
+
+Pesos anteriores (w1, w2, w3):
+    Aunque la UI todavía permite ajustar estos pesos para no romper implementaciones pasadas, internamente la función _calcular_score los ignora en favor de la fórmula lineal determinista.
 
 Mapeo de restricciones usuario → menú:
   Restricciones POSITIVAS (el plato DEBE tener la propiedad):
@@ -514,8 +519,10 @@ Mapeo de restricciones usuario → menú:
     sin_huevo         → menu.con_huevo          == False
 
 Generación de combinaciones de menú:
+- Se utiliza normalización de texto (.lower().strip()) y coincidencias por subcadenas ("postre" in categoria) para agrupar platos de forma robusta y evitar descartes por plurales o errores tipográficos.
 - Se combinan platos de categorías Primero/Entrante con Segundo/Principal
-  para crear menús de 2 platos.
+  para crear menús de 2 platos, y se añaden Postres/Acompañamientos en las plantillas Ligero y Completo.
+- Nueva plantilla 'Tradicional': Permite combinar [1 Primero + 1 Segundo + 1 Postre + 1 Acompañamiento] en el mismo menú, ampliando el abanico para cuando el usuario tenga presupuestos o requisitos calóricos amplios.
 - Restricciones positivas (vegetariano, sin_gluten, bajo_sal):
   el combo cumple solo si TODOS los platos cumplen.
 - Restricciones negativas (con_lactosa, con_frutos_secos, con_huevo):

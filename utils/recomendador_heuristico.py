@@ -1,25 +1,20 @@
 """
 MenuMatch - Motor de Recomendación Heurístico (Basado en Reglas)
 
-Decisión #13 (Rev. 3): Motor de recomendación con Plantillas de Menú
-y scoring balanceado.
+Decisión #13 (Rev. 4): Motor de recomendación con Plantillas de Menú
+y scoring simplificado lineal (Baseline para ML).
 
-Correcciones sobre Rev. 2:
-  1. FILTRO SEMÁNTICO: Postres y Acompañamientos NO pueden formar una
-     plantilla 'Plato Único'. Solo Primeros, Segundos y Platos Únicos
-     reales tienen esa capacidad semántica.
-
-  2. PENALIZACIÓN ASIMÉTRICA DE DÉFICIT CALÓRICO: La fórmula anterior
-     penalizaba igual el exceso que el déficit calórico. El nuevo
-     cálculo aplica una penalización exponencial (×3) cuando el menú
-     se queda MUY por debajo del objetivo (> 40% de déficit), lo que
-     destruye cualquier bonus de plantilla para ítems insignificantes
-     como un acompañamiento o un postre aislado.
-
-  3. BONUS REDUCIDO A DESEMPATE: El bonus de la plantilla 'Plato Único'
-     se reduce a un valor mínimo (0.05) para que actúe únicamente como
-     criterio de desempate entre menús de puntuación muy similar, sin
-     dominar la ecuación.
+Correcciones sobre Rev. 3:
+  1. SIMPLIFICACIÓN DE SCORING: La fórmula se refactoriza para ser lineal
+     y predecible, priorizando la desviación calórica en un 95%.
+  2. PRECIO COMO DESEMPATE: El presupuesto es un límite absoluto (hard-ban).
+     El precio solo se usa como un factor minúsculo de penalización para 
+     desempatar menús con calorías similares.
+  3. ELIMINACIÓN DE BONUS: Se eliminan todos los bonus por "ahorro" 
+     para evitar comportamientos agresivos e impredecibles.
+  4. BARRERAS DE SEGURIDAD MANTENIDAS: Se conserva el filtro semántico 
+     y el hard-ban de postres/panes como plato único, además de la penalización
+     drástica por déficit calórico severo (< 60% del objetivo).
 
   PLANTILLAS SOPORTADAS:
   ┌─────────────┬──────────────────────────────────────────────────────┐
@@ -31,14 +26,17 @@ Correcciones sobre Rev. 2:
   │ Ligero      │ 1 (Primero o Segundo) + 1 Postre                     │
   ├─────────────┼──────────────────────────────────────────────────────┤
   │ Completo    │ 1 Primero + 1 Segundo + 1 (Postre o Acompañamiento)  │
+  ├─────────────┼──────────────────────────────────────────────────────┤
+  │ Tradicional │ 1 Primero + 1 Segundo + 1 Postre + 1 Acompañamiento  │
   └─────────────┴──────────────────────────────────────────────────────┘
 
-Fórmula de scoring (Rev. 3):
+Fórmula de scoring (Rev. 4):
   desv = |kcal_menu - kcal_objetivo| / kcal_objetivo
-  penalizacion_cal = desv × 3  si déficit > 40%  (kcal_menu < 0.6 × objetivo)
-                   = desv       en cualquier otro caso
-  score = (w1 × sat) - (w2 × precio_norm) - (w3 × penalizacion_cal)
-          + bonus_plantilla   [bonus máx. 0.05, solo desempate]
+  score_base = 1.0 - desv
+  desempate_precio = precio_menu * 0.001
+  score = score_base - desempate_precio
+  
+  Si kcal_menu < 0.6 × kcal_objetivo: score = score * 0.1 (penalización severa)
 
 Flujo de datos (MVVM):
   Vista (Página Streamlit) → recoge parámetros del usuario
@@ -54,21 +52,15 @@ from itertools import product
 _UMBRAL_PRESUPUESTO_BAJO = 6.0   # €
 _UMBRAL_CALORIAS_BAJAS   = 500   # kcal
 
-# Bonus de plantilla: valor mínimo para actuar solo como desempate.
-# NO debe dominar la ecuación; el objetivo calórico es el factor principal.
-_BONUS_PLATO_UNICO = 0.05
+# Bonus de plantilla eliminado a petición de tutor para hacer el modelo Baseline predecible.
 
 # Umbral de déficit calórico a partir del cual se aplica penalización ×3.
 # Si el menú aporta menos del 60% de las kcal objetivo → déficit severo.
 _UMBRAL_DEFICIT_SEVERO = 0.40   # 40% por debajo del objetivo
 _MULTIPLICADOR_DEFICIT  = 3.0   # factor de amplificación del castigo
 
-# Categorías reconocidas por tipo
-_CAT_PRIMEROS = {"Primero", "Entrante", "primero", "entrante"}
-_CAT_SEGUNDOS = {"Segundo", "Principal", "segundo", "principal"}
-_CAT_POSTRES  = {"Postre", "postre"}
-_CAT_ACOMP    = {"Acompañamiento", "Guarnicion", "acompañamiento", "guarnicion"}
-_CAT_UNICOS   = {"Plato Único", "plato único", "Unico", "unico", "Único", "único"}
+# Categorías son detectadas ahora mediante normalización (.lower().strip())
+# y subcadenas ('postre' in cat) en la fase de generación.
 
 # Categorías EXCLUIDAS de la plantilla 'Plato Único' (filtro semántico inclusivo).
 # Se compara en minúsculas y con singular/plural para ser robusto ante variaciones
@@ -134,77 +126,56 @@ def _calcular_score(
     menu: dict,
     presupuesto: float,
     calorias_objetivo: int,
-    w1: float,
-    w2: float,
-    w3: float,
+    w1: float = None,  # Mantenidos por compatibilidad pero ignorados
+    w2: float = None,
+    w3: float = None,
     satisfaccion_media: float = 3.0,
 ) -> float:
     """
-    Calcula la puntuación heurística de un menú con scoring adaptativo.
+    Calcula la puntuación heurística de un menú con scoring lineal predecible.
 
-    La novedad respecto a la versión anterior es el BONUS ADAPTATIVO:
-    si el menú es un Plato Único y el usuario tiene un contexto de bajo
-    presupuesto (< 6€) o bajas calorías (< 500 kcal), se añade un bonus
-    que compensa la penalización implícita por precio que sufría el plato
-    único al compararse con combinaciones más caras.
+    La fórmula se ha simplificado drásticamente a petición académica para
+    servir como Baseline puro. 
+    - Presupuesto: El presupuesto no aporta "ahorro" en el score. Es un
+      límite absoluto (se filtra antes de llamar a esta función).
+    - Prioridad Calórica (95%): La desviación sobre el objetivo calórico
+      es el componente casi total del score.
+    - Precio (5%): Penalización minúscula por precio, usado únicamente como
+      desempate si dos menús tienen valores calóricos idénticos.
 
     Fórmula:
-      score = (w1 × satisfaccion_media) - (w2 × precio_normalizado)
-              - (w3 × desviacion_calorica) + bonus_plantilla
-
-    Donde:
-      - precio_normalizado  = precio_menu / presupuesto_usuario  (rango 0–1)
-      - desviacion_calorica = |calorias_menu - calorias_objetivo| / calorias_objetivo
-      - bonus_plantilla     = _BONUS_PLATO_UNICO_BAJO_CONTEXTO si aplica,
-                              0.0 en caso contrario.
+      score = 1.0 - desviacion_calorica - (precio_menu * 0.001)
 
     Args:
         menu: Diccionario con precio, calorias y plantilla del menú.
-        presupuesto: Presupuesto máximo del usuario (€).
+        presupuesto: (Ignorado en cálculo, límite absoluto previo).
         calorias_objetivo: Objetivo calórico del usuario (kcal).
-        w1: Peso de la satisfacción (por defecto 0.5).
-        w2: Peso del precio normalizado (por defecto 0.3).
-        w3: Peso de la desviación calórica (por defecto 0.2).
-        satisfaccion_media: Satisfacción simulada (por defecto 3.0).
+        w1, w2, w3: Ignorados (se mantienen para evitar romper llamadas existentes).
+        satisfaccion_media: (Ignorada temporalmente hasta ML real).
 
     Returns:
         Puntuación heurística del menú (float). Mayor = mejor.
     """
-    precio    = menu.get("precio", 0)
-    calorias  = menu.get("calorias", 0)
-    plantilla = menu.get("plantilla", "")
+    precio = menu.get("precio", 0)
+    calorias = menu.get("calorias", 0)
 
-    # ── Precio normalizado (0 = gratis, 1 = agota el presupuesto) ──
-    precio_normalizado = precio / presupuesto if presupuesto > 0 else 1.0
-
-    # ── Penalización calórica estándar ────────────────────────────────
+    # ── Prioridad Calórica: Desviación (0 = perfecto, mayor = peor) ──
     desviacion_calorica = (
         abs(calorias - calorias_objetivo) / calorias_objetivo
         if calorias_objetivo > 0
         else 0.0
     )
 
-    score = (
-        (w1 * satisfaccion_media)
-        - (w2 * precio_normalizado)
-        - (w3 * desviacion_calorica)
-    )
+    # Score base centrado en cumplimiento calórico
+    score = 1.0 - desviacion_calorica
 
-    # ── Bonus de plantilla (desempate únicamente) ─────────────────────
-    contexto_bajo = (
-        presupuesto < _UMBRAL_PRESUPUESTO_BAJO
-        or calorias_objetivo < _UMBRAL_CALORIAS_BAJAS
-    )
-    if plantilla == "Plato Único" and contexto_bajo:
-        score += _BONUS_PLATO_UNICO
+    # ── Desempate por precio: penalización minúscula (no bonus agresivo) ──
+    score -= (precio * 0.001)
 
-    # ── PENALIZACIÓN MULTIPLICATIVA POR DÉFICIT CALÓRICO SEVERO ───────
+    # ── PENALIZACIÓN POR DÉFICIT CALÓRICO SEVERO ───────
     # Si el menú aporta menos del 60% de las kcal objetivo, el score
-    # total se multiplica por 0.1 (hundimiento drástico).
-    # Esta barrera es POSTERIOR a cualquier bonus y precio, de modo que
-    # ningún ahorro económico ni bonus de plantilla puede compensarla.
-    # Es la única forma de garantizar que un ítem de 150 kcal nunca
-    # supere a un menú de 700-900 kcal en contextos normales.
+    # se hunde drásticamente multiplicándose por 0.1. Esto previene
+    # recomendar un "pan" o "postre" suelto si de forma anómala pasara los filtros.
     if calorias_objetivo > 0 and calorias < 0.60 * calorias_objetivo:
         score *= 0.1
 
@@ -252,11 +223,22 @@ def generar_combinaciones_menu(
         Lista de dicts representando menús estructurados con plantilla.
         Cada dict añade la clave "plantilla" para trazabilidad.
     """
-    # ── Clasificar platos por categoría ──
-    primeros = [p for p in platos if p.get("categoria", "") in _CAT_PRIMEROS]
-    segundos = [p for p in platos if p.get("categoria", "") in _CAT_SEGUNDOS]
-    postres  = [p for p in platos if p.get("categoria", "") in _CAT_POSTRES]
-    acomps   = [p for p in platos if p.get("categoria", "") in _CAT_ACOMP]
+    # ── Clasificar platos por categoría (con normalización robusta) ──
+    primeros = []
+    segundos = []
+    postres  = []
+    acomps   = []
+    
+    for p in platos:
+        cat = p.get("categoria", "").lower().strip()
+        if "primero" in cat or "entrante" in cat:
+            primeros.append(p)
+        elif "segundo" in cat or "principal" in cat:
+            segundos.append(p)
+        elif "postre" in cat:
+            postres.append(p)
+        elif "acompañamiento" in cat or "guarnicion" in cat or "guarnición" in cat:
+            acomps.append(p)
 
     # ── FILTRO SEMÁNTICO INCLUSIVO (robusto a mayúsculas y plurales) ──
     # Se excluyen por categoría los ítems que nunca pueden ser una comida
@@ -314,6 +296,13 @@ def generar_combinaciones_menu(
                 combinaciones.append(
                     {**_combinar_platos([p1, p2, comp]), "plantilla": "Completo"}
                 )
+
+    # ── Plantilla: Tradicional (Primero + Segundo + Postre + Acompañamiento) ──
+    if postres and acomps:
+        for p1, p2, postre, acomp in product(primeros, segundos, postres, acomps):
+            combinaciones.append(
+                {**_combinar_platos([p1, p2, postre, acomp]), "plantilla": "Tradicional"}
+            )
 
     # Fallback: si no se ha generado ninguna combinación estructurada
     # (p.ej. catálogo con un solo plato de una sola categoría),
