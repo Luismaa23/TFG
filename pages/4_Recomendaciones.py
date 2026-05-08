@@ -14,11 +14,13 @@ from utils.auth import require_auth, ROLE_ADMIN, ROLE_USUARIO
 from utils.menu_storage import get_all_menus
 from utils.database import create_pedido, create_evaluacion
 from utils.google_sheets import save_to_google_sheets
+import random
 from utils.recomendador_heuristico import (
     recomendar_menu_heuristico,
     recomendar_top_n,
     generar_combinaciones_menu,
 )
+from utils.ml_model import predict_satisfaction, load_model_and_scaler
 
 inject_custom_css()
 
@@ -195,24 +197,52 @@ else:
                     calorias_hint=calorias_objetivo,
                 )
 
-        # Ejecutar motor heurístico
-        resultado = recomendar_menu_heuristico(
+        # Decidir rama (A/B Test)
+        if random.random() < 0.5:
+            st.session_state.recommendation_type = "ml"
+        else:
+            st.session_state.recommendation_type = "heuristic"
+
+        # Obtener todos los candidatos válidos ordenados por heurística
+        candidatos = recomendar_top_n(
             menus_disponibles=combinaciones,
             presupuesto_usuario=presupuesto,
             calorias_objetivo=calorias_objetivo,
             restricciones_usuario=restricciones,
+            n=50, # Suficientes candidatos para reordenar con ML
             w1=w1, w2=w2, w3=w3,
         )
 
-        # Top N para alternativas
-        top_n = recomendar_top_n(
-            menus_disponibles=combinaciones,
-            presupuesto_usuario=presupuesto,
-            calorias_objetivo=calorias_objetivo,
-            restricciones_usuario=restricciones,
-            n=6,
-            w1=w1, w2=w2, w3=w3,
-        )
+        if not candidatos:
+            resultado = None
+            top_n = []
+        else:
+            if st.session_state.recommendation_type == "ml":
+                model, scaler = load_model_and_scaler()
+                if model is None:
+                    # Fallback silencioso si el modelo no está entrenado aún
+                    st.session_state.recommendation_type = "heuristic"
+                else:
+                    candidatos_ml = []
+                    for menu, score_heuristico in candidatos:
+                        calorias = menu.get("calorias", 0)
+                        precio = menu.get("precio", 0)
+                        price_ratio = precio / max(presupuesto, 0.01)
+                        
+                        pred = predict_satisfaction(calorias, price_ratio, score_heuristico)
+                        prob_exito = pred.get("prob_satisfied", 0.0)
+                        candidatos_ml.append((menu, prob_exito, score_heuristico))
+                    
+                    # Reordenar por probabilidad de éxito (de mayor a menor)
+                    candidatos_ml.sort(key=lambda x: x[1], reverse=True)
+                    
+                    # Extraer el top (menu, prob_exito) en vez de score_heuristico
+                    resultado = (candidatos_ml[0][0], candidatos_ml[0][1])
+                    top_n = [(c[0], c[1]) for c in candidatos_ml[:6]]
+            
+            if st.session_state.recommendation_type == "heuristic":
+                resultado = candidatos[0]
+                top_n = candidatos[:6]
 
         # Guardar en session_state para persistir tras rerun
         st.session_state.reco_resultado = resultado
@@ -300,6 +330,16 @@ else:
                 score_color = "#F85149"
                 score_label = "Aceptable"
 
+            rec_type = st.session_state.get("recommendation_type", "heuristic")
+            if rec_type == "ml":
+                badge_text = "🤖 Recomendado por Inteligencia Artificial"
+                badge_bg = "linear-gradient(135deg, #8B5CF6, #6D28D9)"  # Morado
+                score_title = "Probabilidad de Éxito"
+            else:
+                badge_text = "🧮 Recomendado por algoritmo clásico"
+                badge_bg = "linear-gradient(135deg, #3B82F6, #2563EB)"  # Azul
+                score_title = "Puntuación Heurística"
+
             st.markdown(f"""
                 <div style="
                     background: linear-gradient(145deg, #1E293B, #0F172A);
@@ -313,13 +353,13 @@ else:
                         position: absolute;
                         top: 0;
                         right: 0;
-                        background: linear-gradient(135deg, #3B82F6, #2563EB);
+                        background: {badge_bg};
                         color: #0F172A;
                         padding: 0.5rem 1.5rem;
                         border-radius: 0 16px 0 16px;
                         font-weight: 700;
                         font-size: 0.85rem;
-                    "> MEJOR VALOR</div>
+                    "> {badge_text}</div>
                     <h2 style="color: #3B82F6; margin: 0 0 1.25rem 0; font-size: 1.4rem;">
                         Menú Recomendado
                     </h2>
@@ -349,7 +389,7 @@ else:
                             </p>
                         </div>
                         <div>
-                            <span style="color: #8B949E; font-size: 0.85rem;">Puntuación</span>
+                            <span style="color: #8B949E; font-size: 0.85rem;">{score_title}</span>
                             <p style="color: {score_color}; font-size: 1.8rem; font-weight: 700; margin: 0.25rem 0 0 0;">
                                 {score:.3f}
                             </p>
@@ -434,7 +474,7 @@ else:
                         calidad_precio=calidad_precio_val,
                         elegiria_real=(elegiria_real == "Sí"),
                         restricciones=restricciones_snapshot,
-                        recommendation_type="heuristic",
+                        recommendation_type=st.session_state.get("recommendation_type", "heuristic"),
                     )
 
                     # Persistencia complementaria en Google Sheets
@@ -450,7 +490,7 @@ else:
                             "calidad_precio": calidad_precio_val,
                             "elegiria_real": (elegiria_real == "Sí"),
                             "restricciones": restricciones_snapshot,
-                            "recommendation_type": "heuristic",
+                            "recommendation_type": st.session_state.get("recommendation_type", "heuristic"),
                         })
                     except Exception:
                         # Si Google Sheets falla, la app sigue con BD local
