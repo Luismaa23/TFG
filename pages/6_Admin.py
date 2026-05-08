@@ -9,6 +9,8 @@ import pandas as pd
 from utils.theme import inject_custom_css
 from utils.database import get_all_evaluaciones
 from utils.ml_pipeline import get_clean_dataset
+from utils.google_sheets import get_all_data_from_sheets
+from utils.ml_model import train_and_evaluate_model
 from utils.auth import (
     require_auth,
     get_all_users,
@@ -225,64 +227,108 @@ else:
 
         st.divider()
 
-# ─── Exportar Datos de Investigación ─────────────────────────────────────────
+# ─── Exportar Datos de Investigación ──────────────────────────────────────────
 st.markdown("### Exportar Datos de Investigación")
 
-st.markdown(
-    '<div style="background:#1E293B;border-radius:12px;padding:1.5rem;'
-    'margin-bottom:1.5rem;border:1px solid #334155;">'
-    '<h4 style="color:#F59E0B;margin-bottom:0.5rem;">'
-    'Sistema de archivos efímero</h4>'
-    '<p style="color:#8B949E;margin:0;">'
-    'Streamlit Community Cloud reinicia los contenedores periódicamente. '
-    'Las evaluaciones almacenadas en SQLite se perderán tras cada reinicio. '
-    'Usa este botón para exportar los datos de investigación antes de que '
-    'eso ocurra.</p></div>',
-    unsafe_allow_html=True,
-)
+tab_sheets, tab_local = st.tabs(["☁️ Google Sheets (nube)", "🗄️ SQLite (local)"])
 
-evaluaciones = get_all_evaluaciones()
+# ── Pestaña 1: Google Sheets ──────────────────────────────────────────────────
+with tab_sheets:
+    st.markdown(
+        '<p style="color:#8B949E;font-size:0.875rem;margin-bottom:1rem;">'
+        'Datos históricos persistidos en la nube. Incluye todas las evaluaciones, '
+        'incluso las de sesiones anteriores que SQLite ya no conserva.</p>',
+        unsafe_allow_html=True,
+    )
+    if st.button("🔄 Cargar datos de Google Sheets", type="primary", key="btn_load_sheets"):
+        try:
+            with st.spinner("Conectando con Google Sheets..."):
+                df_sheets = get_all_data_from_sheets()
 
-if len(evaluaciones) == 0:
-    st.info("No hay evaluaciones registradas todavía.")
-else:
-    df_eval = pd.DataFrame(evaluaciones)
+            if df_sheets.empty:
+                st.info(
+                    "La hoja de Google Sheets está vacía. "
+                    "Las evaluaciones aparecen aquí en tiempo real."
+                )
+            else:
+                col_info, col_btn = st.columns([2, 1])
+                with col_info:
+                    st.markdown(
+                        f'<div style="background:#1E293B;border-radius:8px;'
+                        f'padding:0.75rem 1rem;display:inline-block;">'
+                        f'<span style="color:#8B949E;">Registros en la nube: </span>'
+                        f'<span style="color:#22C55E;font-weight:600;">{len(df_sheets)}</span>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                with col_btn:
+                    csv_sheets = df_sheets.to_csv(index=False).encode("utf-8")
+                    st.download_button(
+                        label="⬇️ Descargar CSV",
+                        data=csv_sheets,
+                        file_name="menumatch_sheets_export.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                        type="secondary",
+                        key="dl_sheets",
+                    )
+                st.markdown("#### Últimos registros")
+                st.dataframe(df_sheets.tail(10), use_container_width=True, hide_index=True)
 
-    # Convertir listas y dicts a texto plano para CSV
-    if "platos" in df_eval.columns:
-        df_eval["platos"] = df_eval["platos"].apply(
-            lambda x: " | ".join(x) if isinstance(x, list) else str(x)
-        )
-    if "restricciones" in df_eval.columns:
-        df_eval["restricciones"] = df_eval["restricciones"].apply(
-            lambda x: str(x) if not isinstance(x, str) else x
-        )
+        except ConnectionError as e:
+            st.error(
+                "❌ No se pudo conectar con Google Sheets.\n\n"
+                "**Causa más probable en local:** falta el archivo "
+                "`.streamlit/secrets.toml` con las credenciales `GOOGLE_CREDENTIALS`.\n\n"
+                f"Detalle técnico: `{e}`"
+            )
+        except RuntimeError as e:
+            st.error(f"❌ Error de red al acceder a Google Sheets: {e}")
+    else:
+        st.info("Pulsa el botón para conectar con Google Sheets y ver los datos de la nube.")
 
-    col_info, col_btn = st.columns([2, 1])
-
-    with col_info:
-        st.markdown(
-            f'<div style="background:#1E293B;border-radius:8px;'
-            f'padding:0.75rem 1rem;display:inline-block;">'
-            f'<span style="color:#8B949E;">Registros disponibles: </span>'
-            f'<span style="color:#3B82F6;font-weight:600;">{len(df_eval)}</span>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-
-    with col_btn:
-        csv_data = df_eval.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="Descargar CSV",
-            data=csv_data,
-            file_name="resultados_tfg_menumatch.csv",
-            mime="text/csv",
-            use_container_width=True,
-            type="primary",
-        )
-
-    st.markdown("#### Vista Previa")
-    st.dataframe(df_eval.head(10), use_container_width=True, hide_index=True)
+# ── Pestaña 2: SQLite local ───────────────────────────────────────────────────
+with tab_local:
+    st.markdown(
+        '<p style="color:#8B949E;font-size:0.875rem;margin-bottom:1rem;">'
+        'Evaluaciones registradas en la base de datos SQLite de esta sesión. '
+        'Se pierden al reiniciar el servidor en Streamlit Cloud.</p>',
+        unsafe_allow_html=True,
+    )
+    evaluaciones_local = get_all_evaluaciones()
+    if not evaluaciones_local:
+        st.info("No hay evaluaciones en la base de datos local todavía.")
+    else:
+        df_local = pd.DataFrame(evaluaciones_local)
+        # Serializar columnas complejas para el CSV
+        for col in ["platos", "restricciones"]:
+            if col in df_local.columns:
+                df_local[col] = df_local[col].apply(
+                    lambda x: " | ".join(x) if isinstance(x, list) else str(x)
+                )
+        col_info2, col_btn2 = st.columns([2, 1])
+        with col_info2:
+            st.markdown(
+                f'<div style="background:#1E293B;border-radius:8px;'
+                f'padding:0.75rem 1rem;display:inline-block;">'
+                f'<span style="color:#8B949E;">Registros locales: </span>'
+                f'<span style="color:#3B82F6;font-weight:600;">{len(df_local)}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with col_btn2:
+            csv_local = df_local.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="⬇️ Descargar CSV",
+                data=csv_local,
+                file_name="menumatch_local_export.csv",
+                mime="text/csv",
+                use_container_width=True,
+                type="secondary",
+                key="dl_local",
+            )
+        st.markdown("#### Últimos registros")
+        st.dataframe(df_local.tail(10), use_container_width=True, hide_index=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -351,6 +397,72 @@ with st.expander("Datos Preprocesados para Machine Learning", expanded=False):
                     "satisfied": st.column_config.NumberColumn("Satisfied", width="small"),
                 },
             )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # ── Botón de entrenamiento ───────────────────────────────────────────
+            if st.button("🧠 Entrenar Modelo de IA", type="primary", key="btn_train_ml", use_container_width=True):
+                try:
+                    with st.spinner("Entrenando modelo..."):
+                        resultado = train_and_evaluate_model()
+
+                    if resultado.get("warning"):
+                        st.warning(resultado["warning"])
+
+                    st.success("✅ ¡Modelo entrenado y guardado con éxito!")
+
+                    col_acc, col_n, col_train, col_test = st.columns(4)
+                    with col_acc:
+                        st.metric(
+                            label="Accuracy",
+                            value=f"{resultado['accuracy'] * 100:.1f}%",
+                            help="Porcentaje de predicciones correctas sobre el conjunto de test.",
+                        )
+                    with col_n:
+                        st.metric(
+                            label="Dataset total",
+                            value=resultado["n_total"],
+                            help="Número total de evaluaciones usadas.",
+                        )
+                    with col_train:
+                        st.metric(
+                            label="Muestras train",
+                            value=resultado["n_train"],
+                            help="Registros usados para entrenar el modelo (80%).",
+                        )
+                    with col_test:
+                        st.metric(
+                            label="Muestras test",
+                            value=resultado["n_test"],
+                            help="Registros usados para evaluar el modelo (20%).",
+                        )
+
+                    st.markdown("#### Matriz de Confusión")
+                    cm_data = resultado["confusion_matrix"]
+                    df_cm = pd.DataFrame(
+                        cm_data,
+                        index=["Real: No satisfecho (0)", "Real: Satisfecho (1)"],
+                        columns=["Pred: No satisfecho (0)", "Pred: Satisfecho (1)"],
+                    )
+                    st.dataframe(df_cm, use_container_width=True)
+                    st.markdown(
+                        '<p style="color:#8B949E;font-size:0.8rem;margin-top:0.5rem;">'
+                        "Diagonal principal = predicciones correctas. "
+                        "Fuera de la diagonal = errores del modelo.</p>",
+                        unsafe_allow_html=True,
+                    )
+
+                    with st.expander("📁 Archivos del modelo guardados"):
+                        st.code(
+                            f"Modelo:    {resultado['model_path']}\n"
+                            f"Escalador: {resultado['scaler_path']}",
+                            language="bash",
+                        )
+
+                except ValueError as e:
+                    st.warning(f"⚠️ {e}")
+                except Exception as e:
+                    st.error(f"❌ Error durante el entrenamiento: {e}")
 
     except FileNotFoundError as e:
         st.error(f"Base de datos no encontrada: {e}")

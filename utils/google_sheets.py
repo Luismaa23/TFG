@@ -1,5 +1,6 @@
 """
-MenuMatch - Persistencia en Google Sheets (CORREGIDO)
+MenuMatch - Persistencia en Google Sheets
+Escritura de evaluaciones y lectura de datos históricos desde la nube.
 """
 
 import json
@@ -9,7 +10,15 @@ import streamlit as st
 
 logger = logging.getLogger(__name__)
 
+
 def _get_google_sheets_client():
+    """
+    Crea y devuelve un cliente autenticado de gspread usando las credenciales
+    de Service Account almacenadas en st.secrets["GOOGLE_CREDENTIALS"].
+
+    Returns:
+        Cliente gspread autorizado, o None si faltan dependencias o credenciales.
+    """
     try:
         import gspread
         from google.oauth2.service_account import Credentials
@@ -18,10 +27,9 @@ def _get_google_sheets_client():
         return None
 
     try:
-        # EL CAMBIO ESTÁ AQUÍ: Usamos json.loads porque st.secrets lo lee como texto
         creds_json = st.secrets["GOOGLE_CREDENTIALS"]
         creds_dict = json.loads(creds_json)
-        
+
         scopes = [
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive",
@@ -35,16 +43,24 @@ def _get_google_sheets_client():
         logger.error("Error al crear cliente de Google Sheets: %s", e)
         return None
 
+
 def save_to_google_sheets(datos: dict) -> bool:
+    """
+    Append a new evaluation row to the first sheet of MenuMatch_Data.
+
+    Args:
+        datos: Diccionario con los campos de la evaluación a persistir.
+
+    Returns:
+        True si la fila se escribió correctamente, False en caso contrario.
+    """
     try:
         client = _get_google_sheets_client()
         if client is None:
             return False
 
-        # Abrir la hoja de cálculo
         spreadsheet = client.open("MenuMatch_Data")
-        # sheet1 siempre toma la primera pestaña, se llame como se llame
-        worksheet = spreadsheet.sheet1 
+        worksheet = spreadsheet.sheet1
 
         fila = [
             datos.get("eval_id", ""),
@@ -66,3 +82,51 @@ def save_to_google_sheets(datos: dict) -> bool:
     except Exception as e:
         logger.error("Error al guardar en Google Sheets: %s", e)
         return False
+
+
+def get_all_data_from_sheets():
+    """
+    Descarga todos los registros históricos de evaluaciones desde la nube.
+
+    Abre el documento ``MenuMatch_Data``, lee la primera hoja completa
+    (incluyendo la fila de cabecera como nombres de columna) y devuelve
+    los datos como un DataFrame de Pandas.
+
+    Returns:
+        ``pd.DataFrame`` con todos los registros de la hoja. Si la hoja está
+        vacía o solo contiene cabecera, devuelve un DataFrame vacío con las
+        columnas correctas pero sin filas.
+
+    Raises:
+        ConnectionError: Si no se puede autenticar con Google (credenciales
+            ausentes, inválidas o sin permisos sobre el documento).
+        RuntimeError: Si ocurre cualquier otro error de red o de la API de
+            Google Sheets durante la lectura.
+    """
+    import pandas as pd
+
+    client = _get_google_sheets_client()
+    if client is None:
+        raise ConnectionError(
+            "No se pudo conectar con Google Sheets. "
+            "Verifica que GOOGLE_CREDENTIALS esté configurado en st.secrets "
+            "y que la cuenta de servicio tenga acceso al documento MenuMatch_Data."
+        )
+
+    try:
+        spreadsheet = client.open("MenuMatch_Data")
+        worksheet = spreadsheet.sheet1
+        records = worksheet.get_all_records()
+
+        if not records:
+            # Hoja vacía o solo cabecera: devolver DataFrame vacío
+            logger.info("La hoja MenuMatch_Data está vacía o no tiene datos.")
+            return pd.DataFrame()
+
+        return pd.DataFrame(records)
+
+    except Exception as e:
+        logger.error("Error al leer datos de Google Sheets: %s", e)
+        raise RuntimeError(
+            f"Error al descargar datos desde Google Sheets: {e}"
+        ) from e

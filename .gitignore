@@ -34,7 +34,9 @@ desktop.ini
 *.log
 
 # ─── Streamlit ───────────────────────────────────────────────────────────────
-# Nota: NO ignoramos .streamlit/ porque contiene config.toml necesario
+# secrets.toml contiene credenciales sensibles — NUNCA subir a Git
+.streamlit/secrets.toml
+# config.toml SÍ se trackea: contiene tema y configuración no sensible
 
 # ─── Datos efímeros (backups de migración JSON) ──────────────────────────────
 data/*.json.bak

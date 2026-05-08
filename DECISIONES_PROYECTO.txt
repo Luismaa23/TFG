@@ -1065,7 +1065,122 @@ evolución desde almacenamiento JSON hasta SQLite.
 [x] Navegación por roles — Implementada (Decisión #9)
 [x] Base de datos relacional — SQLite con 3 tablas (Decisión #11)
 [x] Persistencia externa Google Sheets — Implementada (Decisión #16)
+[x] Pipeline de ML y dataset limpio — Implementado (Decisión #17)
+[x] Panel Admin con exportación bidireccional — Implementado (Decisión #18)
+[x] Entrenamiento del modelo ML — Implementado (Decisión #19)
+[ ] Predicción en producción (Integración con sistema Heurístico)
 [ ] Despliegue (Streamlit Cloud, Heroku, AWS)
+
+------------------------------------------------------------------------------
+DECISIÓN #17: Pipeline de Machine Learning — Dataset Limpio
+------------------------------------------------------------------------------
+Fecha: 2026-05-08
+Estado: Implementada
+
+¿Qué se decidió?
+- Crear el módulo utils/ml_pipeline.py con la función get_clean_dataset()
+  que extrae, transforma y limpia los datos de evaluaciones_menus en un
+  DataFrame listo para entrenar un clasificador ML.
+- Añadir scikit-learn>=1.2.0 y joblib>=1.2.0 a requirements.txt.
+
+¿Por qué se tomó esta decisión?
+- El tutor indicó que el pipeline de ML debe ser un módulo independiente
+  de la capa de presentación (Streamlit), desacoplado y reproducible.
+- Centralizar el preprocesamiento garantiza que el mismo DataFrame llega
+  al modelo de entrenamiento y al modelo de inferencia en producción.
+
+Feature engineering implementado:
+  presupuesto_max  → Extraído de restricciones_json con fallback 15.0
+  price_ratio      → precio / presupuesto_max (clip lower=0.01)
+  satisfied        → 1 si satisfaccion >= 4, 0 si satisfaccion <= 3
+
+Columnas del DataFrame final:
+  ['id', 'calorias', 'precio', 'presupuesto_max', 'price_ratio',
+   'score', 'recommendation_type', 'satisfied']
+
+Columnas excluidas (motivo):
+  calidad_precio   → Redundante con satisfied (deriva de la misma opinión)
+  restricciones_json, platos, fecha, username → No predictivos
+
+Gestión de edge cases:
+  - BD vacía: devuelve DataFrame vacío con esquema correcto (no falla)
+  - JSON inválido: fallback a 15.0 para presupuesto_max
+  - División por cero en price_ratio: clip(lower=0.01)
+
+Archivos creados/modificados:
+  utils/ml_pipeline.py (NUEVO) — función get_clean_dataset()
+  requirements.txt (MODIFICADO) — scikit-learn, joblib
+
+------------------------------------------------------------------------------
+DECISIÓN #18: Panel Admin — Exportación Bidireccional con Pestañas
+------------------------------------------------------------------------------
+Fecha: 2026-05-08
+Estado: Implementada
+
+¿Qué se decidió?
+- Rediseñar la sección "Exportar Datos de Investigación" del Panel Admin
+  con dos pestañas (st.tabs):
+    ☁️ Google Sheets (nube) — Datos históricos completos, descarga bajo demanda
+    🗄️ SQLite (local)       — Datos de la sesión actual, siempre disponibles
+- La pestaña de Sheets se activa con un botón explícito (no en el page load)
+  para evitar bloqueos en entornos sin credenciales.
+- Añadir utils/google_sheets.py: nueva función get_all_data_from_sheets()
+  que lee todos los registros de la primera hoja de MenuMatch_Data.
+- Visualización del dataset preprocesado para ML en un st.expander con
+  métricas de distribución de clases (total, positivos, negativos).
+
+¿Por qué se tomó esta decisión?
+- La exportación automática al cargar la página fallaba en local (sin
+  GOOGLE_CREDENTIALS configurado), mostrando un error rojo confuso.
+- El patrón de dos pestañas permite al admin acceder a los datos en
+  cualquier entorno: con conexión a Sheets en producción, o con SQLite
+  en local durante el desarrollo.
+- El botón explícito "Cargar datos" implementa lazy loading: la conexión
+  de red solo se ejecuta cuando el admin la solicita, mejorando el tiempo
+  de carga inicial de la página.
+
+Manejo de errores por entorno:
+  ConnectionError → Sheets no disponible (sin credenciales): mensaje claro
+                    con instrucciones para configurar secrets.toml local
+  RuntimeError    → Fallo de red o API en producción: st.error descriptivo
+
+Configuración local de secretos:
+  .streamlit/secrets.toml (excluido de Git por seguridad)
+  Formato: GOOGLE_CREDENTIALS = '''{ JSON de cuenta de servicio }'''
+
+Archivos creados/modificados:
+  utils/google_sheets.py (MODIFICADO) — get_all_data_from_sheets()
+  pages/6_Admin.py (MODIFICADO) — st.tabs + expander ML dataset
+  .streamlit/secrets.toml (NUEVO) — template de credenciales locales
+  .gitignore (MODIFICADO) — secrets.toml añadido a la lista de exclusiones
+
+------------------------------------------------------------------------------
+DECISIÓN #19: Entrenamiento de Modelo ML (Regresión Logística)
+------------------------------------------------------------------------------
+Fecha: 2026-05-08
+Estado: Implementada
+
+¿Qué se decidió?
+- Crear utils/ml_model.py para el entrenamiento y evaluación de un
+  modelo de Regresión Logística.
+- Integrar la ejecución del entrenamiento en el Panel Admin mediante
+  un botón en la sección de datos preprocesados.
+
+¿Por qué se tomó esta decisión?
+- Proveer un clasificador binario ('satisfied' = 1/0) para mejorar las
+  recomendaciones en el futuro.
+- Encapsular la lógica ML fuera de la UI, exponiendo métricas simples
+  (accuracy, confusion_matrix, etc.) mediante diccionarios.
+
+Detalles Técnicos:
+- Variables predictivas: ['calorias', 'price_ratio', 'score']
+- Estandarización: StandardScaler()
+- Algoritmo: LogisticRegression(max_iter=1000)
+- Guardado: models/logistic_model.joblib y models/scaler.joblib
+
+Archivos creados/modificados:
+  utils/ml_model.py (NUEVO) — Lógica de entrenamiento ML
+  pages/6_Admin.py (MODIFICADO) — Interfaz de entrenamiento y métricas
 
 ================================================================================
                               HISTORIAL DE CAMBIOS
@@ -1130,5 +1245,24 @@ evolución desde almacenamiento JSON hasta SQLite.
            | Dependencias: gspread>=6.0.0, google-auth>=2.20.0
            | Integración en pages/4_Recomendaciones.py tras create_evaluacion()
            | Patrón fire-and-forget con try-except para resiliencia
+
+2026-05-08 | Añadida Decisión #17: Pipeline de Machine Learning
+           | Nuevo módulo utils/ml_pipeline.py con get_clean_dataset()
+           | Feature engineering: presupuesto_max, price_ratio, satisfied
+           | requirements.txt: añadidos scikit-learn>=1.2.0, joblib>=1.2.0
+
+2026-05-08 | Añadida Decisión #18: Panel Admin — Exportación Bidireccional
+           | utils/google_sheets.py: nueva función get_all_data_from_sheets()
+           | pages/6_Admin.py: sección exportación rediseñada con st.tabs
+           | Pestaña Sheets con lazy loading (botón explícito)
+           | Pestaña SQLite siempre disponible como fallback
+           | Expander "Datos Preprocesados para ML" con métricas de clases
+           | .streamlit/secrets.toml creado (template local, excluido de Git)
+           | .gitignore actualizado: secrets.toml protegido
+
+2026-05-08 | Añadida Decisión #19: Entrenamiento de Modelo ML
+           | utils/ml_model.py: lógica de Regresión Logística
+           | Integrado botón de entrenamiento en pages/6_Admin.py
+           | Visualización de métricas (Accuracy, Confusión, Tramos de train/test)
 
 ================================================================================
