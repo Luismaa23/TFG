@@ -1079,15 +1079,18 @@ Estado: Implementada
 
 ¿Qué se decidió?
 - Crear el módulo utils/ml_pipeline.py con la función get_clean_dataset()
-  que extrae, transforma y limpia los datos de evaluaciones_menus en un
-  DataFrame listo para entrenar un clasificador ML.
+  que extrae, transforma y limpia los datos de evaluaciones para entrenar.
+- Hibridación Inteligente de Datos (Añadido): El pipeline prioriza extraer 
+  los datos de Google Sheets (Cloud). Si la conexión falla, no hay credenciales, 
+  o el dataset está vacío, aplica un fallback automático a SQLite (Local).
+  Implementa normalización de columnas para compatibilidad de esquemas.
 - Añadir scikit-learn>=1.2.0 y joblib>=1.2.0 a requirements.txt.
 
 ¿Por qué se tomó esta decisión?
-- El tutor indicó que el pipeline de ML debe ser un módulo independiente
-  de la capa de presentación (Streamlit), desacoplado y reproducible.
-- Centralizar el preprocesamiento garantiza que el mismo DataFrame llega
-  al modelo de entrenamiento y al modelo de inferencia en producción.
+- Los datos de inferencia y entrenamiento deben procesarse idénticamente.
+- La mayoría de las evaluaciones reales generadas en producción se almacenan
+  en Google Sheets. Conectar el pipeline directamente a la nube permite
+  reentrenar el modelo con datos frescos sin migraciones manuales.
 
 Feature engineering implementado:
   presupuesto_max  → Extraído de restricciones_json con fallback 15.0

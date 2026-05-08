@@ -80,36 +80,91 @@ def get_clean_dataset(db_path: str = "data/menumatch.db") -> pd.DataFrame:
         1    ...
         0    ...
     """
-    # ── 1. Resolución de ruta ─────────────────────────────────────────────────
-    abs_path = os.path.abspath(db_path)
-    if not os.path.exists(abs_path):
-        raise FileNotFoundError(
-            f"No se encontró la base de datos en: {abs_path}\n"
-            "Asegúrate de ejecutar la app al menos una vez para inicializar la BD."
-        )
+    import unicodedata
+    import streamlit as st
+    
+    df = None
+    data_source = "Local"
 
-    # ── 2. Extracción desde SQLite ────────────────────────────────────────────
-    conn = sqlite3.connect(abs_path)
+    # \u2500\u2500 1. Intento de extracci\u00f3n desde Google Sheets (Nube) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     try:
-        df = pd.read_sql_query(
-            """
-            SELECT
-                id,
-                precio,
-                calorias,
-                score,
-                recommendation_type,
-                restricciones_json,
-                satisfaccion
-            FROM evaluaciones_menus
-            """,
-            conn,
-        )
-    finally:
-        conn.close()
+        from utils.google_sheets import get_all_data_from_sheets
+        df_sheets = get_all_data_from_sheets()
+        
+        if df_sheets is not None and not df_sheets.empty:
+            # Adaptaci\u00f3n de nombres de columnas (manejando may\u00fasculas y espacios)
+            rename_map = {}
+            for col in df_sheets.columns:
+                norm_col = str(col).lower().strip()
+                norm_col = unicodedata.normalize('NFKD', norm_col).encode('ASCII', 'ignore').decode('utf-8')
+                norm_col = norm_col.replace(' ', '_').replace('-', '_')
+                
+                if norm_col in ('eval_id', 'identificador', 'id'):
+                    rename_map[col] = 'id'
+                elif 'restricciones' in norm_col:
+                    rename_map[col] = 'restricciones_json'
+                elif 'satisfaccion' in norm_col:
+                    rename_map[col] = 'satisfaccion'
+                elif 'recommendation' in norm_col or 'recomendacion' in norm_col:
+                    rename_map[col] = 'recommendation_type'
+                elif 'score' in norm_col or 'puntuacion' in norm_col:
+                    rename_map[col] = 'score'
+                elif 'calorias' in norm_col:
+                    rename_map[col] = 'calorias'
+                elif norm_col == 'precio':
+                    rename_map[col] = 'precio'
+                else:
+                    rename_map[col] = norm_col
+                    
+            df_sheets = df_sheets.rename(columns=rename_map)
+            
+            # Verificar que las columnas requeridas existan
+            required_cols = ['id', 'precio', 'calorias', 'score', 'recommendation_type', 'restricciones_json', 'satisfaccion']
+            missing = [c for c in required_cols if c not in df_sheets.columns]
+            
+            if not missing:
+                df = df_sheets[required_cols].copy()
+                data_source = "Cloud (Google Sheets)"
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Fallo al obtener datos de Google Sheets: %s", e)
+
+    # \u2500\u2500 2. Fallback: Extracci\u00f3n desde SQLite (Local) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    if df is None or df.empty:
+        abs_path = os.path.abspath(db_path)
+        if not os.path.exists(abs_path):
+            raise FileNotFoundError(
+                f"No se encontr\u00f3 la base de datos en: {abs_path}\n"
+                "Aseg\u00farate de ejecutar la app al menos una vez para inicializar la BD."
+            )
+
+        conn = sqlite3.connect(abs_path)
+        try:
+            df = pd.read_sql_query(
+                """
+                SELECT
+                    id,
+                    precio,
+                    calorias,
+                    score,
+                    recommendation_type,
+                    restricciones_json,
+                    satisfaccion
+                FROM evaluaciones_menus
+                """,
+                conn,
+            )
+        finally:
+            conn.close()
+
+    # Mostrar informaci\u00f3n sobre la fuente de datos si estamos bajo Streamlit
+    try:
+        st.info(f"\u2139\ufe0f Datos extra\u00eddos desde: **{data_source}**")
+    except Exception:
+        pass
 
     if df.empty:
-        # Devolver DataFrame vacío con el esquema correcto para no romper el pipeline
+        # Devolver DataFrame vac\u00edo con el esquema correcto para no romper el pipeline
         return pd.DataFrame(columns=_FINAL_COLUMNS)
 
     # ── 3. Parseo de restricciones_json → presupuesto_max ────────────────────
