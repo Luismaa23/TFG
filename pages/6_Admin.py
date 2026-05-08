@@ -8,6 +8,7 @@ import streamlit as st
 import pandas as pd
 from utils.theme import inject_custom_css
 from utils.database import get_all_evaluaciones
+from utils.ml_pipeline import get_clean_dataset
 from utils.auth import (
     require_auth,
     get_all_users,
@@ -282,6 +283,79 @@ else:
 
     st.markdown("#### Vista Previa")
     st.dataframe(df_eval.head(10), use_container_width=True, hide_index=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ─── Datos Preprocesados para Machine Learning ────────────────────────────────
+with st.expander("Datos Preprocesados para Machine Learning", expanded=False):
+    st.markdown(
+        '<p style="color:#8B949E;font-size:0.875rem;margin-bottom:1rem;">'
+        'Vista del DataFrame limpio generado por <code>get_clean_dataset()</code>. '
+        'Columnas redundantes y no predictivas han sido eliminadas. '
+        'Verifica la distribución de clases antes de entrenar el modelo.</p>',
+        unsafe_allow_html=True,
+    )
+
+    try:
+        df_ml = get_clean_dataset()
+
+        if df_ml.empty:
+            st.warning(
+                "No hay evaluaciones registradas todavía. "
+                "El dataset estará disponible cuando los usuarios valoren menús."
+            )
+        else:
+            # ── Métricas de distribución ──────────────────────────────────────
+            total_filas = len(df_ml)
+            positivos = int((df_ml["satisfied"] == 1).sum())
+            negativos = int((df_ml["satisfied"] == 0).sum())
+
+            mc1, mc2, mc3 = st.columns(3)
+            with mc1:
+                st.metric(
+                    label="Total de filas",
+                    value=total_filas,
+                    help="Número total de evaluaciones procesadas.",
+                )
+            with mc2:
+                st.metric(
+                    label="Satisfechos (satisfied = 1)",
+                    value=positivos,
+                    delta=f"{positivos / total_filas * 100:.1f}%" if total_filas else None,
+                    help="Evaluaciones con satisfacción ≥ 4.",
+                )
+            with mc3:
+                st.metric(
+                    label="No satisfechos (satisfied = 0)",
+                    value=negativos,
+                    delta=f"-{negativos / total_filas * 100:.1f}%" if total_filas else None,
+                    delta_color="inverse",
+                    help="Evaluaciones con satisfacción ≤ 3.",
+                )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # ── DataFrame limpio ──────────────────────────────────────────────
+            st.dataframe(
+                df_ml,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "id": st.column_config.NumberColumn("ID", width="small"),
+                    "calorias": st.column_config.NumberColumn("Calorías", format="%d kcal"),
+                    "precio": st.column_config.NumberColumn("Precio", format="%.2f €"),
+                    "presupuesto_max": st.column_config.NumberColumn("Presupuesto Máx.", format="%.2f €"),
+                    "price_ratio": st.column_config.NumberColumn("Price Ratio", format="%.3f"),
+                    "score": st.column_config.NumberColumn("Score Heurístico", format="%.3f"),
+                    "recommendation_type": st.column_config.TextColumn("Tipo Recomendación"),
+                    "satisfied": st.column_config.NumberColumn("Satisfied", width="small"),
+                },
+            )
+
+    except FileNotFoundError as e:
+        st.error(f"Base de datos no encontrada: {e}")
+    except Exception as e:
+        st.error(f"Error al cargar el dataset ML: {e}")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
