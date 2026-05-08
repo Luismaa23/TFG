@@ -99,11 +99,11 @@ def get_clean_dataset(db_path: str = "data/menumatch.db") -> pd.DataFrame:
                 norm_col = unicodedata.normalize('NFKD', norm_col).encode('ASCII', 'ignore').decode('utf-8')
                 norm_col = norm_col.replace(' ', '_').replace('-', '_')
                 
-                if norm_col in ('eval_id', 'identificador', 'id'):
+                if norm_col in ('eval_id', 'identificador', 'id', ''):
                     rename_map[col] = 'id'
-                elif 'restricciones' in norm_col:
+                elif 'restriccion' in norm_col:
                     rename_map[col] = 'restricciones_json'
-                elif 'satisfaccion' in norm_col:
+                elif 'satisfaccion' in norm_col or 'satifaccion' in norm_col:
                     rename_map[col] = 'satisfaccion'
                 elif 'recommendation' in norm_col or 'recomendacion' in norm_col:
                     rename_map[col] = 'recommendation_type'
