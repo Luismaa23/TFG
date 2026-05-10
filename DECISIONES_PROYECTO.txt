@@ -83,23 +83,20 @@ Fecha: 2026-02-09
 Estado: Implementada
 
 ¿Qué se decidió?
-- Color primario: #00D4AA (Verde menta/turquesa)
-- Fondo principal: #0E1117 (Negro profundo)
-- Fondo secundario: #1A1D24 (Gris oscuro)
-- Texto principal: #FAFAFA (Blanco suave)
-- Texto secundario: #8B949E (Gris medio)
-- Bordes: #30363D (Gris oscuro)
+- Fondo principal: #0F172A (Slate 900)
+- Fondo secundario: #1E293B (Slate 800)
+- Color primario: #3B82F6 (Blue 500)
+- Primario Hover: #2563EB (Blue 600)
+- Texto principal: #E2E8F0 (Slate 200)
+- Texto secundario: #94A3B8 (Slate 400)
+- Éxito/Aviso/Error: #10B981 / #F59E0B / #EF4444
+- Bordes: #334155 (Slate 700)
 
 ¿Por qué se tomó esta decisión?
-- Verde menta (#00D4AA) evoca frescura y alimentos saludables
-- Se asocia con "verde" = saludable, orgánico, natural
-- Alto contraste con el fondo oscuro para accesibilidad
-- Paleta inspirada en GitHub Dark Mode (probada y profesional)
-- Colores semánticos claros (success, warning, error)
-
-Justificación del gradiente primario:
-- Linear-gradient(135deg, #00D4AA, #00B894) crea profundidad visual
-- El ángulo de 135° sigue la dirección natural de lectura
+- Se ha evolucionado la paleta hacia tonos *Slate* y azules vibrantes inspirados en TailwindCSS.
+- El azul (#3B82F6) evoca confianza, profesionalidad y encaja mejor con una aplicación B2B/B2C tecnológica.
+- Los grises azulados del fondo (Slate) reducen la fatiga visual en comparación con el negro puro o grises cálidos.
+- Se ha implementado Glassmorphism sutil (gradientes `linear-gradient(145deg, #1E293B, #0F172A)` y bordes translúcidos) para dar profundidad y modernidad a las tarjetas UI.- El ángulo de 135° sigue la dirección natural de lectura
 
 ------------------------------------------------------------------------------
 DECISIÓN #4: Estructura del Proyecto - Multipágina
@@ -1268,4 +1265,18 @@ Archivos creados/modificados:
            | Integrado botón de entrenamiento en pages/6_Admin.py
            | Visualización de métricas (Accuracy, Confusión, Tramos de train/test)
 
+2026-05-10 | Añadida Decisión #23: Mejora UI Gestión Usuarios y Ocultación Documentación
+           | pages/6_Admin.py: Se elimina visor de DECISIONES_PROYECTO.txt
+           | Se rediseña el apartado de gestión de usuarios con st.container y expanders
+
 ================================================================================
+
+
+Decisión #22: Rediseño del Panel de Administración (6_Admin.py)
+- Se reestructura en un cuadro de mando profesional, eliminando emojis decorativos.
+- Se implementa un panel de métricas rápidas (Flash Metrics) que muestra total de usuarios, evaluaciones, ratio A/B y la accuracy de la IA actual.
+- Se divide el contenido en tres pestañas principales: Gestión de Datos, Inteligencia Artificial, y Configuración y Logs, para optimizar el espacio visual y agrupar funcionalidades relacionadas.
+
+Decisión #23: Mejora UI Gestión Usuarios y Ocultación Documentación
+- Se elimina el visor del documento de decisiones de pages/6_Admin.py ya que es un recurso interno para la elaboración de la memoria del TFG.
+- Se rediseña la lista de usuarios usando st.container(border=True) para enmarcar a cada usuario y st.expander para ocultar las opciones de edición/eliminación. Esto le da un toque mucho más profesional y estructurado ("serio y elaborado") en contraste con la disposición plana anterior.

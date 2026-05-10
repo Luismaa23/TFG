@@ -221,14 +221,14 @@ entrenar futuros modelos de ML:
 
   Modo oscuro profesional inspirado en GitHub Dark Mode.
 
-  Paleta de colores:
-    Color primario:    #00D4AA (verde menta — evoca frescura y salud)
-    Fondo principal:   #0E1117 (negro profundo)
-    Fondo secundario:  #1A1D24 (gris oscuro)
-    Texto principal:   #FAFAFA (blanco suave)
-    Texto secundario:  #8B949E (gris medio)
-    Bordes:            #30363D (gris oscuro)
-    Gradiente:         linear-gradient(135deg, #00D4AA, #00B894)
+  Paleta de colores (Inspirada en Tailwind CSS - Slate/Blue):
+    Color primario:    #3B82F6 (azul — evoca confianza y profesionalidad)
+    Fondo principal:   #0F172A (slate profundo)
+    Fondo secundario:  #1E293B (slate grisáceo)
+    Texto principal:   #E2E8F0 (slate claro)
+    Texto secundario:  #94A3B8 (slate medio)
+    Bordes:            #334155 (slate oscuro)
+    Gradientes:        linear-gradient(145deg, #1E293B, #0F172A) para cards, y degradados azules/morados para UI highlights.
 
   Implementación: utils/theme.py inyecta CSS personalizado globalmente.
   Configuración base: .streamlit/config.toml
@@ -244,6 +244,8 @@ entrenar futuros modelos de ML:
   pandas            | >=2.0.0          | Manipulación de datos tabulares
   gspread           | >=6.0.0          | Cliente Python para Google Sheets
   google-auth       | >=2.20.0         | Autenticación OAuth2 con Google
+  scikit-learn      | >=1.2.0          | Machine Learning (Regresión Logística)
+  joblib            | >=1.2.0          | Persistencia de modelos ML
   sqlite3           | (built-in)       | Base de datos (incluido en Python)
 
 ================================================================================
@@ -288,13 +290,13 @@ entrenar futuros modelos de ML:
     [x] Historial de pedidos con valoración por estrellas
     [x] Panel de administración con CRUD de usuarios
     [x] Navegación filtrada por rol (st.navigation)
-    [x] Tema oscuro personalizado
+    [x] Tema oscuro personalizado (Slate/Blue)
+    [x] Integración de modelo de Machine Learning (Regresión Logística)
+        utilizando las evaluaciones recopiladas como dataset de entrenamiento
+    [x] Validación A/B (doble carril): heurístico vs. modelo ML en producción
 
   PENDIENTE / TRABAJO FUTURO:
-    [ ] Integración de modelo de Machine Learning (clasificador supervisado)
-        utilizando las evaluaciones recopiladas como dataset de entrenamiento
     [ ] Despliegue en Streamlit Community Cloud (o Heroku / AWS)
-    [ ] Validación A/B: heurístico vs. modelo ML
     [ ] Posible migración de BD a PostgreSQL para producción
 
 ================================================================================
