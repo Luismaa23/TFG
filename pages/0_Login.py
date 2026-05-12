@@ -29,6 +29,9 @@ st.markdown("""
     [data-testid="stSidebar"] { display: none; }
     [data-testid="collapsedControl"] { display: none; }
     
+    /* Ocultar texto de 'Press Enter to submit form' que se solapa con el ojo de contraseña */
+    div[data-testid="InputInstructions"] { display: none !important; }
+    
     .login-container {
         max-width: 480px;
         margin: 0 auto;
@@ -52,19 +55,6 @@ st.markdown("""
     .login-header p {
         color: #8B949E;
         font-size: 1rem;
-    }
-    
-    .role-card {
-        background: linear-gradient(145deg, #1E293B, #0F172A);
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        border: 1px solid #334155;
-        margin-bottom: 0.5rem;
-        transition: all 0.2s ease;
-    }
-    
-    .role-card:hover {
-        border-color: #3B82F6;
     }
     
     .divider-text {
@@ -155,30 +145,9 @@ with tab_register:
         )
         
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("##### ¿Qué tipo de cuenta necesitas?")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-                <div class="role-card">
-                    <p style="margin: 0; color: #E2E8F0; font-weight: 600;">Usuario</p>
-                    <p style="margin: 0.25rem 0 0 0; color: #8B949E; font-size: 0.8rem;">
-                        Busca y pide menús
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown("""
-                <div class="role-card">
-                    <p style="margin: 0; color: #E2E8F0; font-weight: 600;">Restaurante</p>
-                    <p style="margin: 0.25rem 0 0 0; color: #8B949E; font-size: 0.8rem;">
-                        Publica tus menús
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
         
         reg_role = st.selectbox(
-            "Tipo de cuenta",
+            "¿Qué tipo de cuenta necesitas?",
             options=[ROLE_USUARIO, ROLE_RESTAURANTE],
             format_func=lambda x: "Usuario — Buscar y pedir menús" if x == ROLE_USUARIO else "Restaurante — Publicar menús",
         )
