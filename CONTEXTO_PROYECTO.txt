@@ -3,7 +3,7 @@
              Archivo de referencia para documentación del TFG
 ================================================================================
 
-Última actualización: 2026-05-05
+Última actualización: 2026-05-13
 Elaborado por: Luis Mascarell Andrés
 Propósito: Dar contexto completo a Claude para ayudar a redactar la memoria
            del Trabajo de Fin de Grado.
@@ -92,7 +92,12 @@ Objetivo académico:
   │   ├── recomendador_heuristico.py# Motor de recomendación por reglas
   │   ├── google_sheets.py          # Backup externo de evaluaciones
   │   ├── components.py             # Componentes UI reutilizables
+  │   ├── ml_pipeline.py            # Preparación de datos y Feature Engineering (ML)
+  │   ├── ml_model.py               # Entrenamiento, evaluación y persistencia (ML)
   │   └── theme.py                  # CSS personalizado (modo oscuro)
+  ├── models/
+  │   ├── logistic_model.joblib     # Modelo serializado de Regresión Logística
+  │   └── scaler.joblib             # Escalador de variables predictivas
   ├── data/
   │   └── menumatch.db              # Base de datos SQLite (generada en runtime)
   └── assets/
@@ -211,9 +216,10 @@ entrenar futuros modelos de ML:
   4. Simultáneamente, se hace backup en Google Sheets (fire-and-forget, con
      try-except para no bloquear la UI si falla la API).
 
-  Futura integración ML:
-    Los campos recommendation_type permitirán comparar en el futuro el
-    rendimiento del heurístico ('heuristic') frente al modelo ML ('ml').
+  Integración ML actual (A/B Testing):
+    En la página de recomendaciones se aplica un test A/B (50/50).
+    Los campos recommendation_type ('heuristic' vs 'ml') permiten comparar el
+    rendimiento del algoritmo clásico frente al modelo de Regresión Logística entrenado.
 
 ================================================================================
                           8. DISEÑO VISUAL
@@ -273,7 +279,10 @@ entrenar futuros modelos de ML:
 
   Rol ADMIN:
     1. Tiene acceso a todas las páginas anteriores
-    2. Panel Admin: puede crear, editar y eliminar usuarios de cualquier rol
+    2. Panel Admin: dividido en 3 pestañas:
+       - Gestión de Datos (exportación a CSV desde Cloud/Local)
+       - Inteligencia Artificial (entrenamiento del modelo ML)
+       - Configuración y Logs (CRUD completo de usuarios)
 
 ================================================================================
                          11. ESTADO ACTUAL Y TRABAJO FUTURO
@@ -294,6 +303,7 @@ entrenar futuros modelos de ML:
     [x] Integración de modelo de Machine Learning (Regresión Logística)
         utilizando las evaluaciones recopiladas como dataset de entrenamiento
     [x] Validación A/B (doble carril): heurístico vs. modelo ML en producción
+    [x] Panel de administración avanzado con exportación de datos y reentrenamiento ML.
 
   PENDIENTE / TRABAJO FUTURO:
     [ ] Despliegue en Streamlit Community Cloud (o Heroku / AWS)
