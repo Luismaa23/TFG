@@ -22,6 +22,9 @@ if "restricciones" not in st.session_state:
         "vegano": False,
         "sin_gluten": False,
         "sin_lactosa": False,
+        "sin_frutos_secos": False,
+        "sin_huevo": False,
+        "bajo_sal": False,
     }
 
 # Header
@@ -76,7 +79,7 @@ with col_right:
     """, unsafe_allow_html=True)
     
     # Grid de restricciones
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         vegetariano = st.checkbox(
@@ -107,6 +110,28 @@ with col_right:
             help="Excluir productos lácteos"
         )
         st.session_state.restricciones["sin_lactosa"] = sin_lactosa
+
+    with col3:
+        sin_frutos_secos = st.checkbox(
+            "Sin Frutos Secos",
+            value=st.session_state.restricciones.get("sin_frutos_secos", False),
+            help="Excluir platos con frutos secos"
+        )
+        st.session_state.restricciones["sin_frutos_secos"] = sin_frutos_secos
+
+        sin_huevo = st.checkbox(
+            "Sin Huevo",
+            value=st.session_state.restricciones.get("sin_huevo", False),
+            help="Excluir platos que contienen huevo"
+        )
+        st.session_state.restricciones["sin_huevo"] = sin_huevo
+
+        bajo_sal = st.checkbox(
+            "Bajo en Sal",
+            value=st.session_state.restricciones.get("bajo_sal", False),
+            help="Solo platos con bajo contenido en sodio"
+        )
+        st.session_state.restricciones["bajo_sal"] = bajo_sal
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -120,6 +145,12 @@ with col_right:
         restricciones_activas.append("Sin Gluten")
     if sin_lactosa:
         restricciones_activas.append("Sin Lactosa")
+    if sin_frutos_secos:
+        restricciones_activas.append("Sin Frutos Secos")
+    if sin_huevo:
+        restricciones_activas.append("Sin Huevo")
+    if bajo_sal:
+        restricciones_activas.append("Bajo en Sal")
     
     if restricciones_activas:
         st.markdown(f"""

@@ -552,7 +552,7 @@ else:
 
             # ── Transparencia del algoritmo ──
             st.markdown("<br>", unsafe_allow_html=True)
-            with st.expander(" Detalles del algoritmo (debug/transparencia)"):
+            with st.expander(" Detalles del algoritmo"):
                 st.markdown(f"""
                     | Parámetro | Valor |
                     |:---|:---|
@@ -561,7 +561,6 @@ else:
                     | Peso satisfacción (w₁) | **{w1}** |
                     | Peso precio (w₂) | **{w2}** |
                     | Peso calorías (w₃) | **{w3}** |
-                    | Satisfacción simulada | **3.0** (futura integración ML) |
                     | Presupuesto usuario | **€{presupuesto:.2f}** |
                     | Calorías objetivo | **{calorias_objetivo} kcal** |
                 """)
@@ -602,14 +601,12 @@ st.markdown("""
             Sobre el Motor de Recomendación
         </h4>
         <p style="color: #8B949E; margin: 0;">
-            Las recomendaciones se calculan mediante un <strong style="color: #E2E8F0;">
-            algoritmo heurístico basado en reglas</strong> que combina filtrado estricto
-            (restricciones dietéticas y presupuesto) con una puntuación ponderada
-            que optimiza satisfacción, precio y equilibrio calórico.
-        </p>
-        <p style="color: #8B949E; margin-top: 0.5rem; font-size: 0.875rem;">
-            <em>Próximamente: Modelo de ML supervisado (k-NN / Regresión Logística)
-            entrenado con las valoraciones reales de los usuarios.</em>
+            Las recomendaciones se calculan mediante un sistema <strong style="color: #E2E8F0;">
+            doble (A/B Test)</strong>: el <strong style="color: #E2E8F0;">algoritmo heurístico</strong>
+            aplica filtrado estricto por restricciones dietéticas y presupuesto, combinado con
+            puntuación ponderada que optimiza el equilibrio calórico. El <strong style="color: #E2E8F0;">
+            modelo de Inteligencia Artificial</strong> (Regresión Logística) reordena los
+            candidatos según la probabilidad de satisfacción aprendida de valoraciones reales.
         </p>
     </div>
 """, unsafe_allow_html=True)

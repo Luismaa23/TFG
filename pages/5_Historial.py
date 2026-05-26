@@ -30,29 +30,6 @@ if len(pedidos) == 0:
         ""
     )
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Vista previa de cómo se vería
-    st.markdown("### Vista Previa")
-    st.markdown("""
-        <div style="
-            background: #1E293B;
-            border-radius: 12px;
-            padding: 1.5rem;
-            border: 1px dashed #334155;
-            opacity: 0.7;
-        ">
-            <p style="color: #8B949E; text-align: center; margin: 0;">
-                Aquí aparecerán tus menús seleccionados con:
-            </p>
-            <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
-                <span style="color: #3B82F6;">Fecha</span>
-                <span style="color: #3B82F6;">Platos</span>
-                <span style="color: #3B82F6;">Valoración</span>
-                <span style="color: #3B82F6;">Precio</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
 else:
     # Estadísticas
     st.markdown("### Estadísticas")

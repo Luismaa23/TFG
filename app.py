@@ -45,6 +45,9 @@ if "restricciones" not in st.session_state:
         "vegano": False,
         "sin_gluten": False,
         "sin_lactosa": False,
+        "sin_frutos_secos": False,
+        "sin_huevo": False,
+        "bajo_sal": False,
     }
 
 
