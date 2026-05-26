@@ -78,9 +78,9 @@ with col_right:
         </div>
     """, unsafe_allow_html=True)
     
-    # Grid de restricciones
-    col1, col2, col3 = st.columns(3)
-    
+    # Grid de restricciones — 2 columnas, nuevas restricciones debajo de las originales
+    col1, col2 = st.columns(2)
+
     with col1:
         vegetariano = st.checkbox(
             "Vegetariano",
@@ -88,30 +88,14 @@ with col_right:
             help="Excluir platos con carne"
         )
         st.session_state.restricciones["vegetariano"] = vegetariano
-        
+
         sin_gluten = st.checkbox(
             "Sin Gluten",
             value=st.session_state.restricciones["sin_gluten"],
             help="Solo platos aptos para celíacos"
         )
         st.session_state.restricciones["sin_gluten"] = sin_gluten
-    
-    with col2:
-        vegano = st.checkbox(
-            "Vegano",
-            value=st.session_state.restricciones["vegano"],
-            help="Excluir todos los productos de origen animal"
-        )
-        st.session_state.restricciones["vegano"] = vegano
-        
-        sin_lactosa = st.checkbox(
-            "Sin Lactosa",
-            value=st.session_state.restricciones["sin_lactosa"],
-            help="Excluir productos lácteos"
-        )
-        st.session_state.restricciones["sin_lactosa"] = sin_lactosa
 
-    with col3:
         sin_frutos_secos = st.checkbox(
             "Sin Frutos Secos",
             value=st.session_state.restricciones.get("sin_frutos_secos", False),
@@ -119,19 +103,34 @@ with col_right:
         )
         st.session_state.restricciones["sin_frutos_secos"] = sin_frutos_secos
 
-        sin_huevo = st.checkbox(
-            "Sin Huevo",
-            value=st.session_state.restricciones.get("sin_huevo", False),
-            help="Excluir platos que contienen huevo"
-        )
-        st.session_state.restricciones["sin_huevo"] = sin_huevo
-
         bajo_sal = st.checkbox(
             "Bajo en Sal",
             value=st.session_state.restricciones.get("bajo_sal", False),
             help="Solo platos con bajo contenido en sodio"
         )
         st.session_state.restricciones["bajo_sal"] = bajo_sal
+
+    with col2:
+        vegano = st.checkbox(
+            "Vegano",
+            value=st.session_state.restricciones["vegano"],
+            help="Excluir todos los productos de origen animal"
+        )
+        st.session_state.restricciones["vegano"] = vegano
+
+        sin_lactosa = st.checkbox(
+            "Sin Lactosa",
+            value=st.session_state.restricciones["sin_lactosa"],
+            help="Excluir productos lácteos"
+        )
+        st.session_state.restricciones["sin_lactosa"] = sin_lactosa
+
+        sin_huevo = st.checkbox(
+            "Sin Huevo",
+            value=st.session_state.restricciones.get("sin_huevo", False),
+            help="Excluir platos que contienen huevo"
+        )
+        st.session_state.restricciones["sin_huevo"] = sin_huevo
     
     st.markdown("<br>", unsafe_allow_html=True)
     
