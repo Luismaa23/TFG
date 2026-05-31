@@ -56,12 +56,12 @@ def menu_card(nombre: str, precio: float, calorias: int, restricciones: list = N
 
 def metric_card(valor: str, etiqueta: str, icono: str = ""):
     """
-    Renderiza una card de métrica sin emojis.
+    Renderiza una tarjeta de metrica con valor y etiqueta descriptiva.
     
     Args:
         valor: Valor principal a mostrar
-        etiqueta: Descripción de la métrica
-        icono: Ignorado para eliminar emojis
+        etiqueta: Descripcion de la metrica
+        icono: Parametro reservado, no utilizado en la version actual
     """
     st.markdown(f"""
         <div class="metric-container">
@@ -73,11 +73,11 @@ def metric_card(valor: str, etiqueta: str, icono: str = ""):
 
 def restriction_badge(tipo: str, activo: bool = False):
     """
-    Renderiza un badge de restricción dietética estilo enterprise.
+    Renderiza un indicador visual de restriccion dietetica.
     
     Args:
-        tipo: Tipo de restricción
-        activo: Si está activa o no
+        tipo: Tipo de restriccion
+        activo: Si la restriccion esta activa o no
     """
     etiquetas = {
         "vegetariano": ("🥬", "Vegetariano"),
@@ -114,11 +114,11 @@ def restriction_badge(tipo: str, activo: bool = False):
 
 def section_header(titulo: str, subtitulo: str = ""):
     """
-    Renderiza un header de sección estilizado sin colores exagerados.
+    Renderiza un encabezado de seccion estilizado.
     
     Args:
-        titulo: Título principal
-        subtitulo: Descripción opcional
+        titulo: Titulo principal
+        subtitulo: Descripcion opcional
     """
     st.markdown(f"""
         <div style="margin-bottom: 2rem;">
@@ -135,11 +135,11 @@ def section_header(titulo: str, subtitulo: str = ""):
 
 def empty_state(mensaje: str, icono: str = ""):
     """
-    Renderiza un estado vacío sin emoji gigante (aspecto profesional).
+    Renderiza un estado vacio con mensaje informativo.
     
     Args:
         mensaje: Mensaje a mostrar
-        icono: Ignorado
+        icono: Parametro reservado, no utilizado en la version actual
     """
     st.markdown(f"""
         <div style="

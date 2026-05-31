@@ -157,9 +157,9 @@ def get_clean_dataset(db_path: str = "data/menumatch.db") -> pd.DataFrame:
         finally:
             conn.close()
 
-    # Mostrar informaci\u00f3n sobre la fuente de datos si estamos bajo Streamlit
+    # Mostrar informacion sobre la fuente de datos si estamos bajo Streamlit
     try:
-        st.info(f"\u2139\ufe0f Datos extra\u00eddos desde: **{data_source}**")
+        st.info(f"Datos extraidos desde: {data_source}")
     except Exception:
         pass
 

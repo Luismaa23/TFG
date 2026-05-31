@@ -117,9 +117,9 @@ def train_and_evaluate_model() -> dict:
 
     if n_total < MIN_RECORDS_RECOMMENDED:
         warning_msg = (
-            f"⚠️ El dataset solo contiene {n_total} registros "
-            f"(mínimo recomendado: {MIN_RECORDS_RECOMMENDED}). "
-            "Las métricas obtenidas no serán estadísticamente representativas, "
+            f"El dataset solo contiene {n_total} registros "
+            f"(minimo recomendado: {MIN_RECORDS_RECOMMENDED}). "
+            "Las metricas obtenidas no seran estadisticamente representativas, "
             "pero el entrenamiento se ejecuta igualmente para pruebas."
         )
         logger.warning(warning_msg)
@@ -161,7 +161,7 @@ def train_and_evaluate_model() -> dict:
     # max_iter=1000 para garantizar convergencia en datasets pequeños.
     # solver='lbfgs' es el predeterminado y adecuado para clasificación binaria.
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")   # Suprimir ConvergenceWarning en datasets tiny
+        warnings.simplefilter("ignore")   # Suprimir ConvergenceWarning en datasets con pocas muestras
         model = LogisticRegression(max_iter=1000, random_state=RANDOM_STATE)
         model.fit(X_train_scaled, y_train)
 

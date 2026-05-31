@@ -1,11 +1,11 @@
 ================================================================================
-                 MENUMATCH — CONTEXTO GENERAL DEL PROYECTO
-             Archivo de referencia para documentación del TFG
+                 MENUMATCH - CONTEXTO GENERAL DEL PROYECTO
+             Archivo de referencia para la documentacion del TFG
 ================================================================================
 
-Última actualización: 2026-05-13
-Elaborado por: Luis Mascarell Andrés
-Propósito: Dar contexto completo a Claude para ayudar a redactar la memoria
+Ultima actualizacion: 2026-05-31
+Elaborado por: Luis Mascarell Andres
+Proposito: Proporcionar contexto completo para la redaccion de la memoria
            del Trabajo de Fin de Grado.
 Complemento: Leer junto a DECISIONES_PROYECTO.txt
 
@@ -13,244 +13,265 @@ Complemento: Leer junto a DECISIONES_PROYECTO.txt
                           1. DATOS DEL TRABAJO
 ================================================================================
 
-Título del proyecto:   MenuMatch — Tu menú del día óptimo
+Titulo del proyecto:   MenuMatch - Tu menu del dia optimo
 Tipo de trabajo:       Trabajo de Fin de Grado (TFG)
-Grado universitario:   [Indicar grado — p.ej. Ingeniería Informática]
+Grado universitario:   [Indicar grado]
 Centro / Universidad:  [Indicar universidad]
 Tutor/a:               [Indicar nombre del tutor]
 Fecha de inicio:       Febrero 2026
 Fecha prevista de entrega: [Indicar fecha]
 
 ================================================================================
-                          2. DESCRIPCIÓN DEL PROYECTO
+                          2. DESCRIPCION DEL PROYECTO
 ================================================================================
 
-MenuMatch es una aplicación web de recomendación de menús del día desarrollada
-con Python y Streamlit. Su objetivo es ayudar a los usuarios a elegir el menú
-más adecuado según sus preferencias dietéticas, restricciones alimentarias y
+MenuMatch es una aplicacion web de recomendacion de menus del dia desarrollada
+con Python y Streamlit. Su objetivo es ayudar a los usuarios a elegir el menu
+mas adecuado segun sus preferencias dieteticas, restricciones alimentarias y
 presupuesto disponible.
 
 El sistema conecta dos tipos de actores principales:
-  • Restaurantes: suben sus platos diarios a la plataforma.
-  • Usuarios:     reciben recomendaciones personalizadas de menú.
+  - Restaurantes: suben sus platos diarios a la plataforma.
+  - Usuarios:     reciben recomendaciones personalizadas de menu.
 
-La aplicación incluye un motor de recomendación heurístico basado en reglas y
-está diseñada para evolucionar hacia un modelo de Machine Learning (ML),
-utilizando los datos de evaluación recopilados durante la fase actual.
+La aplicacion implementa un motor de recomendacion dual:
+  - Motor heuristico basado en reglas (baseline): filtrado estricto por
+    restricciones dieteticas y presupuesto, con puntuacion ponderada que
+    optimiza el equilibrio calorico.
+  - Modelo de Machine Learning (Regresion Logistica): reordena los candidatos
+    heuristicos segun la probabilidad de satisfaccion aprendida de valoraciones
+    reales de usuarios.
 
-Objetivo académico:
-  Demostrar la viabilidad de un sistema de recomendación de bajo coste
-  computacional (heurístico) que sirva de baseline y genere datos etiquetados
-  para un futuro clasificador ML.
+Ambos motores operan simultameamente mediante un esquema de Test A/B (50/50)
+que permite comparar su rendimiento en produccion y recopilar datos etiquetados.
+
+Objetivo academico:
+  Demostrar la viabilidad de un sistema de recomendacion de bajo coste
+  computacional (heuristico) que sirva de baseline y, a traves del mecanismo
+  de feedback del usuario, genere datos etiquetados para entrenar y validar
+  un clasificador de Machine Learning en produccion.
 
 ================================================================================
-                          3. ARQUITECTURA TÉCNICA
+                          3. ARQUITECTURA TECNICA
 ================================================================================
 
 --- Framework y lenguaje ---
 
   Lenguaje:         Python 3.10+
   Framework Web:    Streamlit 1.54+
-  BD Local:         SQLite (módulo sqlite3 nativo de Python)
+  BD Local:         SQLite (modulo sqlite3 nativo de Python)
   BD externa:       Google Sheets (backup de evaluaciones, mediante gspread)
-  Autenticación:    Hashing bcrypt + session_state de Streamlit
-  Despliegue:       Local (localhost:8501) / Streamlit Community Cloud
+  Autenticacion:    Hashing bcrypt + session_state de Streamlit
+  Despliegue:       Streamlit Community Cloud
 
---- Patrón de diseño ---
+--- Patron de diseno ---
 
-  La aplicación sigue un patrón orientado a capas análogo al patrón MVVM:
+  La aplicacion sigue un patron orientado a capas analogo al patron MVVM:
 
-  • View (pages/):        Páginas Streamlit, solo lógica de UI.
-  • ViewModel (utils/):   Funciones de negocio, transformaciones y estado.
-  • Model (utils/database.py, utils/menu_storage.py, utils/auth.py):
+  - View (pages/):        Paginas Streamlit, solo logica de UI.
+  - ViewModel (utils/):   Funciones de negocio, transformaciones y estado.
+  - Model (utils/database.py, utils/menu_storage.py, utils/auth.py):
                           Acceso y persistencia de datos (SQLite + JSON).
 
-  Gestión de estado:      st.session_state para datos de sesión por usuario.
-  Navegación por roles:   st.navigation() con listas de st.Page() filtradas.
+  Gestion de estado:      st.session_state para datos de sesion por usuario.
+  Navegacion por roles:   st.navigation() con listas de st.Page() filtradas.
 
 --- Estructura de carpetas ---
 
   TFG/
-  ├── app.py                        # Punto de entrada: config global + routing
-  ├── requirements.txt              # Dependencias Python
-  ├── .streamlit/
-  │   └── config.toml               # Tema oscuro + configuración Streamlit
-  ├── pages/
-  │   ├── 0_Login.py                # Pantalla de login y registro (pública)
-  │   ├── 1_Inicio.py               # Dashboard de bienvenida
-  │   ├── 2_Cargar_Menu.py          # Carga de platos (restaurante/admin)
-  │   ├── 3_Restricciones.py        # Configuración de preferencias del usuario
-  │   ├── 4_Recomendaciones.py      # Motor heurístico + formulario evaluación
-  │   ├── 5_Historial.py            # Historial de pedidos + valoraciones
-  │   ├── 6_Admin.py                # Panel CRUD de usuarios (solo admin)
-  │   └── 7_Carta_Completa.py       # Carta libre (pedido sin recomendador)
-  ├── utils/
-  │   ├── __init__.py
-  │   ├── auth.py                   # Autenticación, roles, gestión de usuarios
-  │   ├── database.py               # Esquema SQLite, init_db(), CRUD general
-  │   ├── menu_storage.py           # CRUD de platos (menus table)
-  │   ├── recomendador_heuristico.py# Motor de recomendación por reglas
-  │   ├── google_sheets.py          # Backup externo de evaluaciones
-  │   ├── components.py             # Componentes UI reutilizables
-  │   ├── ml_pipeline.py            # Preparación de datos y Feature Engineering (ML)
-  │   ├── ml_model.py               # Entrenamiento, evaluación y persistencia (ML)
-  │   └── theme.py                  # CSS personalizado (modo oscuro)
-  ├── models/
-  │   ├── logistic_model.joblib     # Modelo serializado de Regresión Logística
-  │   └── scaler.joblib             # Escalador de variables predictivas
-  ├── data/
-  │   └── menumatch.db              # Base de datos SQLite (generada en runtime)
-  └── assets/
-      └── logo.png                  # Logo de la aplicación
+  |-- app.py                        # Punto de entrada: config global + routing
+  |-- requirements.txt              # Dependencias Python
+  |-- .streamlit/
+  |   +-- config.toml               # Tema oscuro + configuracion Streamlit
+  |-- pages/
+  |   |-- 0_Login.py                # Pantalla de login y registro (publica)
+  |   |-- 1_Inicio.py               # Dashboard de bienvenida
+  |   |-- 2_Cargar_Menu.py          # Carga de platos (restaurante/admin)
+  |   |-- 3_Restricciones.py        # Configuracion de preferencias del usuario
+  |   |-- 4_Recomendaciones.py      # Motor dual (heuristico + ML) + evaluacion
+  |   |-- 5_Historial.py            # Historial de pedidos + valoraciones
+  |   |-- 6_Admin.py                # Panel de administracion (solo admin)
+  |   +-- 7_Carta_Completa.py       # Carta libre (pedido sin recomendador)
+  |-- utils/
+  |   |-- __init__.py
+  |   |-- auth.py                   # Autenticacion, roles, gestion de usuarios
+  |   |-- database.py               # Esquema SQLite, init_db(), CRUD general
+  |   |-- menu_storage.py           # CRUD de platos (tabla menus)
+  |   |-- recomendador_heuristico.py# Motor de recomendacion por reglas
+  |   |-- google_sheets.py          # Backup externo de evaluaciones
+  |   |-- components.py             # Componentes UI reutilizables
+  |   |-- ml_pipeline.py            # Preparacion de datos y Feature Engineering
+  |   |-- ml_model.py               # Entrenamiento, evaluacion y persistencia ML
+  |   +-- theme.py                  # CSS personalizado (modo oscuro)
+  |-- models/
+  |   |-- logistic_model.joblib     # Modelo serializado de Regresion Logistica
+  |   +-- scaler.joblib             # Escalador de variables predictivas
+  |-- data/
+  |   +-- menumatch.db              # Base de datos SQLite (generada en runtime)
+  +-- assets/
+      +-- logo.png                  # Logo de la aplicacion
 
 ================================================================================
                           4. BASE DE DATOS (SQLite)
 ================================================================================
 
 Archivo: data/menumatch.db
-Creación: automática al arrancar la app (init_db() en utils/database.py)
+Creacion: automatica al arrancar la app (init_db() en utils/database.py)
 
   TABLA: usuarios
     id, username (UNIQUE), password (bcrypt), role, nombre, created_at
 
   TABLA: menus
     id, nombre, precio, calorias, categoria,
-    vegetariano, sin_gluten,              ← restricciones base
-    con_lactosa, con_frutos_secos, con_huevo, bajo_sal,  ← añadidas en Decisión #12
+    vegetariano, sin_gluten,              <- restricciones base
+    con_lactosa, con_frutos_secos, con_huevo, bajo_sal,  <- Decision #12
     uploaded_by, uploaded_at
 
   TABLA: pedidos
     id, username, platos (JSON), precio, calorias, valoracion (0-5), fecha
 
-  TABLA: evaluaciones_menus                ← añadida en Decisión #15
+  TABLA: evaluaciones_menus                <- Decision #15
     id, username, platos (JSON), precio, calorias, score,
     recommendation_type ('heuristic' | 'ml'),
     restricciones_json, satisfaccion (1-5), calidad_precio (1-5),
     elegiria_real (BOOL), fecha
 
-Configuración de conexión:
-  PRAGMA journal_mode=WAL;    → permite lecturas concurrentes
-  PRAGMA foreign_keys=ON;     → activa integridad referencial
+Configuracion de conexion:
+  PRAGMA journal_mode=WAL;    -> permite lecturas concurrentes
+  PRAGMA foreign_keys=ON;     -> activa integridad referencial
 
 ================================================================================
                           5. SISTEMA DE ROLES Y ACCESO
 ================================================================================
 
-  Rol            | Acceso a páginas
-  ───────────────┼────────────────────────────────────────────────────────────
+  Rol            | Acceso a paginas
+  ---------------+----------------------------------------------------------------
   usuario        | Inicio, Restricciones, Recomendaciones, Carta, Historial
-  restaurante    | Inicio, Cargar Menú
-  admin          | Todas las páginas + Panel Admin (CRUD usuarios)
+  restaurante    | Inicio, Cargar Menu
+  admin          | Todas las paginas + Panel Admin (CRUD usuarios)
 
   Credenciales por defecto del admin: admin / admin123
-  Contraseñas almacenadas con hash bcrypt (NO en texto plano).
+  Contrasenas almacenadas con hash bcrypt (NO en texto plano).
 
-  Flujo de autenticación:
+  Flujo de autenticacion:
     1. Usuario introduce credenciales en 0_Login.py
     2. auth.py verifica hash bcrypt contra la BD
     3. Si correcto, se guarda el usuario en st.session_state["current_user"]
-    4. app.py lee el rol y construye la navegación filtrada con st.navigation()
+    4. app.py lee el rol y construye la navegacion filtrada con st.navigation()
     5. Logout limpia la session_state y llama a st.rerun()
 
 ================================================================================
-                          6. MOTOR DE RECOMENDACIÓN HEURÍSTICO
+                          6. MOTOR DE RECOMENDACION HEURISTICO
 ================================================================================
 
-Módulo: utils/recomendador_heuristico.py
+Modulo: utils/recomendador_heuristico.py
 
 El motor opera en dos fases:
 
-  FASE 1 — Filtrado estricto (Hard Rules):
+  FASE 1 - Filtrado estricto (Hard Rules):
     Elimina platos/combos que:
-      • Superan el presupuesto máximo del usuario
-      • Incumplen restricciones positivas (vegetariano, sin_gluten, bajo_sal):
+      - Superan el presupuesto maximo del usuario
+      - Incumplen restricciones positivas (vegetariano, sin_gluten, bajo_sal):
         el COMBO debe cumplirlas en TODOS sus platos.
-      • Contienen alérgenos no deseados (sin_lactosa → con_lactosa=False, etc.):
+      - Contienen alergenos no deseados (sin_lactosa -> con_lactosa=False, etc.):
         el COMBO falla si CUALQUIER plato lo contiene.
 
-  FASE 2 — Puntuación (Soft Scoring):
-    Fórmula simplificada (Rev. 4, por indicación del tutor):
+  FASE 2 - Puntuacion (Soft Scoring):
+    Formula simplificada (Rev. 4, por indicacion del tutor):
 
-      score = 1.0 - desviación_calórica - (precio_menú × 0.001)
+      score = 1.0 - desviacion_calorica - (precio_menu x 0.001)
 
-      Donde: desviación_calórica = |cal_menú - cal_objetivo| / cal_objetivo
+      Donde: desviacion_calorica = |cal_menu - cal_objetivo| / cal_objetivo
 
-      Si cal_menú < 0.60 × cal_objetivo:
-        score = score × 0.1   (penalización drástica por déficit severo)
+      Si cal_menu < 0.60 x cal_objetivo:
+        score = score x 0.1   (penalizacion drastica por deficit severo)
 
-    Motivación: El presupuesto actúa solo como filtro absoluto. Las calorías
-    dominan el 95% del score. El precio actúa como desempate mínimo.
+    Motivacion: El presupuesto actua solo como filtro absoluto. Las calorias
+    dominan el 95% del score. El precio actua como desempate minimo.
 
-  Generación de combinaciones:
-    • Normalización de texto con .lower().strip() y coincidencia por subcadena
-      (ej: "postre" in categoria) para tolerar plurales y errores tipográficos.
-    • Plantillas de menú:
-        - Ligero:      [1 Primero/Entrante + 1 Segundo/Principal]
-        - Completo:    [1 Primero + 1 Segundo + 1 Postre]
-        - Tradicional: [1 Primero + 1 Segundo + 1 Postre + 1 Acompañamiento]
-    • Fallback: si no hay categorías suficientes, cada plato individual es un
-      menú de 1 plato.
+  Generacion de combinaciones:
+    - Normalizacion de texto con .lower().strip() y coincidencia por subcadena
+      (ej: "postre" in categoria) para tolerar plurales y errores tipograficos.
+    - Plantillas de menu:
+        - Plato Unico: un solo plato (primero, segundo o plato principal).
+        - Clasico:     1 Primero + 1 Segundo.
+        - Ligero:      1 (Primero o Segundo) + 1 Postre.
+        - Completo:    1 Primero + 1 Segundo + 1 (Postre o Acompanamiento).
+        - Tradicional: 1 Primero + 1 Segundo + 1 Postre + 1 Acompanamiento.
+    - Fallback: si no hay categorias suficientes, cada plato individual es un
+      menu de 1 plato.
 
-  Funciones clave del módulo:
-    _cumple_restricciones(combo, restricciones) → bool
-    _calcular_score(combo, calorias_objetivo) → float
-    recomendar_menu_heuristico(platos, restricciones) → dict | None
-    recomendar_top_n(platos, restricciones, n=5) → list[dict]
-    generar_combinaciones_menu(platos) → list[dict]
+  Funciones clave del modulo:
+    _cumple_restricciones(combo, restricciones) -> bool
+    _calcular_score(combo, calorias_objetivo) -> float
+    recomendar_menu_heuristico(platos, restricciones) -> dict | None
+    recomendar_top_n(platos, restricciones, n=5) -> list[dict]
+    generar_combinaciones_menu(platos) -> list[dict]
 
 ================================================================================
-                          7. RECOGIDA DE DATOS PARA ML (FEEDBACK LOOP)
+                          7. TEST A/B Y MODELO DE MACHINE LEARNING
 ================================================================================
 
-El sistema incluye un mecanismo de recopilación de datos etiquetados para
-entrenar futuros modelos de ML:
+Modulo ML: utils/ml_model.py
+Pipeline: utils/ml_pipeline.py
 
-  1. El usuario recibe una recomendación del motor heurístico.
-  2. Se le presenta un formulario de evaluación (st.form) con 3 preguntas:
-       a. Satisfacción general (escala 1-5)
-       b. Relación calidad-precio (escala 1-5)
-       c. ¿Elegiría realmente este menú? (Sí/No)
+El sistema implementa un esquema de Test A/B (50/50) activo en produccion:
+  - Rama "heuristic": el motor clasico de reglas devuelve el mejor candidato.
+  - Rama "ml": el modelo de Regresion Logistica reordena hasta 50 candidatos
+    heuristicos por probabilidad de satisfaccion y selecciona el primero.
+
+Cada recomendacion registra el campo recommendation_type ('heuristic' | 'ml')
+en la tabla evaluaciones_menus, lo que permite comparar el rendimiento de ambas
+ramas con los datos reales de los usuarios.
+
+Mecanismo de recogida de datos (feedback loop):
+  1. El usuario recibe una recomendacion del motor dual.
+  2. Se le presenta un formulario de evaluacion (st.form) con 3 preguntas:
+       a. Satisfaccion general (escala 1-5)
+       b. Relacion calidad-precio (escala 1-5)
+       c. Elegiriia realmente este menu? (Si/No)
   3. Al enviar, se guarda un registro en la tabla SQLite evaluaciones_menus
-     con el contexto completo: platos, precio, calorías, score heurístico,
-     restricciones activas y las 3 respuestas del usuario.
-  4. Simultáneamente, se hace backup en Google Sheets (fire-and-forget, con
+     con el contexto completo: platos, precio, calorias, score heuristico,
+     restricciones activas, tipo de recomendacion y las 3 respuestas.
+  4. Simultaneamente, se hace backup en Google Sheets (fire-and-forget, con
      try-except para no bloquear la UI si falla la API).
 
-  Integración ML actual (A/B Testing):
-    En la página de recomendaciones se aplica un test A/B (50/50).
-    Los campos recommendation_type ('heuristic' vs 'ml') permiten comparar el
-    rendimiento del algoritmo clásico frente al modelo de Regresión Logística entrenado.
+Feature engineering implementado en ml_pipeline.py:
+  - price_ratio: precio / presupuesto_max (ratio de consumo del presupuesto)
+  - satisfied:   variable objetivo binaria (1 si satisfaccion >= 4, 0 si <= 3)
+
+Variables predictivas del modelo: calorias, price_ratio, score
+Algoritmo: LogisticRegression(max_iter=1000) con StandardScaler
 
 ================================================================================
-                          8. DISEÑO VISUAL
+                          8. DISENO VISUAL
 ================================================================================
 
   Modo oscuro profesional inspirado en GitHub Dark Mode.
 
-  Paleta de colores (Inspirada en Tailwind CSS - Slate/Blue):
-    Color primario:    #3B82F6 (azul — evoca confianza y profesionalidad)
+  Paleta de colores (basada en Tailwind CSS - Slate/Blue):
+    Color primario:    #3B82F6 (azul)
     Fondo principal:   #0F172A (slate profundo)
-    Fondo secundario:  #1E293B (slate grisáceo)
+    Fondo secundario:  #1E293B (slate grisaceo)
     Texto principal:   #E2E8F0 (slate claro)
     Texto secundario:  #94A3B8 (slate medio)
     Bordes:            #334155 (slate oscuro)
-    Gradientes:        linear-gradient(145deg, #1E293B, #0F172A) para cards, y degradados azules/morados para UI highlights.
 
-  Implementación: utils/theme.py inyecta CSS personalizado globalmente.
-  Configuración base: .streamlit/config.toml
+  Implementacion: utils/theme.py inyecta CSS personalizado globalmente.
+  Configuracion base: .streamlit/config.toml
 
 ================================================================================
                           9. DEPENDENCIAS PRINCIPALES
 ================================================================================
 
-  Librería          | Versión          | Uso
-  ──────────────────┼──────────────────┼────────────────────────────────────
+  Libreria          | Version          | Uso
+  ------------------+------------------+----------------------------------------
   streamlit         | >=1.54.0         | Framework web principal
-  bcrypt            | >=4.0.0          | Hasheo seguro de contraseñas
-  pandas            | >=2.0.0          | Manipulación de datos tabulares
+  bcrypt            | >=4.0.0          | Hasheo seguro de contrasenas
+  pandas            | >=2.0.0          | Manipulacion de datos tabulares
   gspread           | >=6.0.0          | Cliente Python para Google Sheets
-  google-auth       | >=2.20.0         | Autenticación OAuth2 con Google
-  scikit-learn      | >=1.2.0          | Machine Learning (Regresión Logística)
+  google-auth       | >=2.20.0         | Autenticacion OAuth2 con Google
+  scikit-learn      | >=1.2.0          | Machine Learning (Regresion Logistica)
   joblib            | >=1.2.0          | Persistencia de modelos ML
   sqlite3           | (built-in)       | Base de datos (incluido en Python)
 
@@ -259,75 +280,62 @@ entrenar futuros modelos de ML:
 ================================================================================
 
   Rol USUARIO:
-    1. Accede a la app → pantalla de Login (0_Login.py)
-    2. Se registra o inicia sesión (rol: usuario)
-    3. Ve el dashboard de Inicio con estadísticas del sistema
-    4. Va a Restricciones → configura presupuesto, calorías objetivo
-       y restricciones dietéticas (vegetariano, sin_gluten, etc.)
-    5. Va a Recomendaciones → pulsa "Buscar Menú Óptimo"
-       → el motor heurístico devuelve el mejor combo + alternativas
-    6. Evalúa el menú recomendado con el formulario (1-5 estrellas)
-       → datos guardados en SQLite + backup en Google Sheets
+    1. Accede a la app -> pantalla de Login (0_Login.py)
+    2. Se registra o inicia sesion (rol: usuario)
+    3. Ve el dashboard de Inicio con estadisticas del sistema
+    4. Va a Restricciones -> configura presupuesto, calorias objetivo
+       y restricciones dieteticas (vegetariano, sin_gluten, etc.)
+    5. Va a Recomendaciones -> pulsa "Buscar Menu Optimo"
+       -> el motor dual (heuristico o ML segun el Test A/B) devuelve
+       el mejor combo y alternativas
+    6. Evalua el menu recomendado con el formulario (satisfaccion, calidad-precio,
+       si lo elegiria realmente)
+       -> datos guardados en SQLite + backup en Google Sheets
     7. Opcionalmente: abre Carta Completa y hace un pedido libre
-    8. Consulta su Historial de pedidos y puede valorarlos
+    8. Consulta su Historial de pedidos y puede valorarlos con 1-5 estrellas
 
   Rol RESTAURANTE:
-    1. Inicia sesión (rol: restaurante)
-    2. Va a Cargar Menú → sube platos vía formulario manual o CSV
-       (nombre, precio, calorías, categoría, restricciones booleanas)
+    1. Inicia sesion (rol: restaurante)
+    2. Va a Cargar Menu -> sube platos via formulario manual o CSV
+       (nombre, precio, calorias, categoria, 6 restricciones booleanas)
     3. Los platos quedan disponibles para todos los usuarios del sistema
 
   Rol ADMIN:
-    1. Tiene acceso a todas las páginas anteriores
-    2. Panel Admin: dividido en 3 pestañas:
-       - Gestión de Datos (exportación a CSV desde Cloud/Local)
-       - Inteligencia Artificial (entrenamiento del modelo ML)
-       - Configuración y Logs (CRUD completo de usuarios)
+    1. Tiene acceso a todas las paginas anteriores
+    2. Panel Admin: dividido en 3 pestanas:
+       - Gestion de Datos (exportacion a CSV desde Cloud/Local)
+       - Inteligencia Artificial (visualizacion del dataset y reentrenamiento ML)
+       - Configuracion y Logs (CRUD completo de usuarios)
 
 ================================================================================
                          11. ESTADO ACTUAL Y TRABAJO FUTURO
 ================================================================================
 
   IMPLEMENTADO (Mayo 2026):
-    [x] Sistema de autenticación con 3 roles
+    [x] Sistema de autenticacion con 3 roles
     [x] CRUD de platos (manual + CSV) con 6 restricciones booleanas
-    [x] Configuración de preferencias del usuario
-    [x] Motor de recomendación heurístico (filtrado + scoring lineal)
-    [x] Formulario de evaluación y tabla evaluaciones_menus
-    [x] Backup automático de evaluaciones en Google Sheets
+    [x] Configuracion de preferencias del usuario
+    [x] Motor de recomendacion heuristico (filtrado + scoring lineal)
+    [x] Modelo de Machine Learning (Regresion Logistica) entrenado con
+        las evaluaciones recopiladas como dataset de entrenamiento
+    [x] Test A/B en produccion: rama heuristica vs. rama ML (50/50)
+    [x] Formulario de evaluacion y tabla evaluaciones_menus
+    [x] Backup automatico de evaluaciones en Google Sheets
     [x] Carta Completa (pedido libre sin recomendador)
-    [x] Historial de pedidos con valoración por estrellas
-    [x] Panel de administración con CRUD de usuarios
-    [x] Navegación filtrada por rol (st.navigation)
+    [x] Historial de pedidos con valoracion por estrellas
+    [x] Panel de administracion avanzado:
+        - Exportacion bidireccional (Google Sheets + SQLite local)
+        - Visualizacion del dataset preprocesado con metricas de clases
+        - Reentrenamiento del modelo ML con un solo clic
+        - CRUD completo de usuarios
+    [x] Navegacion filtrada por rol (st.navigation)
     [x] Tema oscuro personalizado (Slate/Blue)
-    [x] Integración de modelo de Machine Learning (Regresión Logística)
-        utilizando las evaluaciones recopiladas como dataset de entrenamiento
-    [x] Validación A/B (doble carril): heurístico vs. modelo ML en producción
-    [x] Panel de administración avanzado con exportación de datos y reentrenamiento ML.
+    [x] Despliegue en Streamlit Community Cloud
 
-  PENDIENTE / TRABAJO FUTURO:
-    [ ] Despliegue en Streamlit Community Cloud (o Heroku / AWS)
-    [ ] Posible migración de BD a PostgreSQL para producción
-
-================================================================================
-                         12. INSTRUCCIONES PARA CLAUDE
-================================================================================
-
-Al utilizar este archivo como contexto para redactar la memoria del TFG,
-tener en cuenta lo siguiente:
-
-  • Terminología: El proyecto se llama "MenuMatch". Usar siempre este nombre.
-  • Nivel: Memoria de TFG universitario, redacción técnica pero accesible.
-  • Idioma: Español (España).
-  • Complemento obligatorio: Leer DECISIONES_PROYECTO.txt para entender el
-    "por qué" de cada decisión técnica (justificaciones, alternativas
-    descartadas, fechas de implementación).
-  • Las "decisiones" del documento complementario son equivalentes a ADRs
-    (Architecture Decision Records) y deben referenciarse en la memoria.
-  • El motor heurístico es un BASELINE, no el objetivo final. El objetivo
-    final es el sistema ML que se alimentará de los datos recopilados.
-  • No inventar funcionalidades que no estén en este documento o en
-    DECISIONES_PROYECTO.txt. Preguntar si hay dudas.
+  LINEAS DE TRABAJO FUTURO:
+    [ ] Migracion de BD a PostgreSQL para produccion a mayor escala
+    [ ] Ampliacion del modelo ML con algoritmos mas sofisticados (k-NN, Random Forest)
+    [ ] Personalizacion de recomendaciones por historial individual del usuario
 
 ================================================================================
                          FIN DEL DOCUMENTO DE CONTEXTO

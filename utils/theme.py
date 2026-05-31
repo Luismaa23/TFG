@@ -20,20 +20,20 @@ COLORS = {
 # CSS personalizado para componentes
 CUSTOM_CSS = """
 <style>
-/* Ocultar elementos por defecto de Streamlit que ensucian la UI */
+/* Ocultar elementos de la interfaz por defecto de Streamlit */
 #MainMenu {visibility: hidden;}
 
-/* Estilo global para evitar parpadeos y unificar fondo */
+/* Estilo global para unificar el fondo de la aplicacion */
 .stApp {
     background-color: #0F172A !important;
 }
 
-/* Estilo para las Tarjetas / Contenedores (Glassmorphism sutil) */
+/* Estilo para las tarjetas y contenedores (Glassmorphism sutil) */
 div[data-testid="stVerticalBlock"] > div > div > div[style*="background"] {
     background: linear-gradient(145deg, #1E293B, #0F172A) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
-    border-radius: 8px !important; /* Menos redondeado = más serio */
+    border-radius: 8px !important;
     padding: 1.5rem !important;
 }
 

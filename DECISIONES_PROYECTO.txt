@@ -1,368 +1,381 @@
 ================================================================================
-                    MENUMATCH - DOCUMENTACIÓN DE DECISIONES
-                      Registro de Decisiones Arquitectónicas
+                    MENUMATCH - DOCUMENTACION DE DECISIONES
+                      Registro de Decisiones Arquitectonicas
 ================================================================================
 
-Proyecto: MenuMatch - Tu menú del día óptimo
+Proyecto: MenuMatch - Tu menu del dia optimo
 Fecha de inicio: 2026-02-09
-Última actualización: 2026-03-03
+Ultima actualizacion: 2026-05-31
 
 ================================================================================
-                              ÍNDICE DE DECISIONES
+                              INDICE DE DECISIONES
 ================================================================================
 
-1. Elección del Framework (Streamlit)
-2. Tema Visual (Modo Oscuro Profesional)
-3. Paleta de Colores
-4. Estructura del Proyecto
-5. Gestión de Estado
-6. Sistema de Autenticación con 3 Roles
-7. Sidebar Compartido con Cierre de Sesión
-8. CRUD Completo de Usuarios en Panel Admin
-9. Navegación por Roles con st.navigation()
-10. Persistencia Compartida de Menús
-11. Migración a SQLite — Base de Datos Relacional
+1.  Eleccion del Framework (Streamlit)
+2.  Tema Visual (Modo Oscuro Profesional)
+3.  Paleta de Colores
+4.  Estructura del Proyecto
+5.  Gestion de Estado
+6.  Sistema de Autenticacion con 3 Roles
+7.  Sidebar Compartido con Cierre de Sesion
+8.  CRUD Completo de Usuarios en Panel Admin
+9.  Navegacion por Roles con st.navigation()
+10. Persistencia Compartida de Menus
+11. Migracion a SQLite - Base de Datos Relacional
 12. Restricciones Alimentarias Ampliadas para ML
-13. Motor de Recomendación Heurístico (Basado en Reglas)
-14. Carta Completa para visualización sin recomendaciones
-15. Formulario de Evaluación y tabla evaluaciones_menus (Feedback ML)
-16. Persistencia Automática en Google Sheets (Backup Externo)
+13. Motor de Recomendacion Heuristico (Basado en Reglas)
+14. Carta Completa para visualizacion sin recomendaciones
+15. Formulario de Evaluacion y tabla evaluaciones_menus (Feedback ML)
+16. Persistencia Automatica en Google Sheets (Backup Externo)
+17. Pipeline de Machine Learning - Dataset Limpio
+18. Panel Admin - Exportacion Bidireccional con Pestanas
+19. Entrenamiento de Modelo ML (Regresion Logistica)
+22. Rediseno del Panel de Administracion
+23. Mejora UI Gestion Usuarios y Ocultacion Documentacion
 
-APÉNDICES:
-A. Guía de Instalación del Proyecto
-B. Comandos de Consola Más Importantes
-C. Creación de la Base de Datos (SQLite)
+APENDICES:
+A. Guia de Instalacion del Proyecto
+B. Comandos de Consola Mas Importantes
+C. Creacion de la Base de Datos (SQLite)
 
 ================================================================================
                               DECISIONES DETALLADAS
 ================================================================================
 
 ------------------------------------------------------------------------------
-DECISIÓN #1: Elección del Framework - Streamlit
+DECISION #1: Eleccion del Framework - Streamlit
 ------------------------------------------------------------------------------
 Fecha: 2026-02-09
 Estado: Implementada
 
-¿Qué se decidió?
+?Que se decidio?
 - Usar Streamlit como framework principal para el desarrollo del frontend.
 
-¿Por qué se tomó esta decisión?
-- Streamlit permite desarrollo rápido de aplicaciones web con Python
+?Por que se tomo esta decision?
+- Streamlit permite desarrollo rapido de aplicaciones web con Python
 - Ideal para aplicaciones de datos y dashboards interactivos
-- No requiere conocimientos de HTML/CSS/JS para funcionalidad básica
-- Permite prototipar rápidamente y enfocarse en la lógica de negocio
-- Adecuado para un TFG donde el tiempo es un factor crítico
+- No requiere conocimientos de HTML/CSS/JS para funcionalidad basica
+- Permite prototipar rapidamente y enfocarse en la logica de negocio
+- Adecuado para un TFG donde el tiempo es un factor critico
 
 Alternativas consideradas:
-- Flask + HTML/CSS/JS: Más flexible pero mayor tiempo de desarrollo
+- Flask + HTML/CSS/JS: Mas flexible pero mayor tiempo de desarrollo
 - Django: Demasiado robusto para un MVP
 - React/Vue: Requiere conocimientos de JavaScript
 
 ------------------------------------------------------------------------------
-DECISIÓN #2: Tema Visual - Modo Oscuro Profesional
+DECISION #2: Tema Visual - Modo Oscuro Profesional
 ------------------------------------------------------------------------------
 Fecha: 2026-02-09
 Estado: Implementada
 
-¿Qué se decidió?
-- Implementar un tema oscuro profesional como diseño principal.
+?Que se decidio?
+- Implementar un tema oscuro profesional como diseno principal.
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - El modo oscuro reduce la fatiga visual durante uso prolongado
 - Proporciona una apariencia moderna y premium
 - Mayor contraste para resaltar elementos importantes
-- Tendencia actual en diseño de interfaces (UX moderna)
-- Diferenciación visual respecto a aplicaciones genéricas
+- Tendencia actual en diseno de interfaces (UX moderna)
+- Diferenciacion visual respecto a aplicaciones genericas
 
 Archivo relacionado: utils/theme.py
 
 ------------------------------------------------------------------------------
-DECISIÓN #3: Paleta de Colores
+DECISION #3: Paleta de Colores
 ------------------------------------------------------------------------------
 Fecha: 2026-02-09
 Estado: Implementada
 
-¿Qué se decidió?
+?Que se decidio?
 - Fondo principal: #0F172A (Slate 900)
 - Fondo secundario: #1E293B (Slate 800)
 - Color primario: #3B82F6 (Blue 500)
 - Primario Hover: #2563EB (Blue 600)
 - Texto principal: #E2E8F0 (Slate 200)
 - Texto secundario: #94A3B8 (Slate 400)
-- Éxito/Aviso/Error: #10B981 / #F59E0B / #EF4444
+- Exito/Aviso/Error: #10B981 / #F59E0B / #EF4444
 - Bordes: #334155 (Slate 700)
 
-¿Por qué se tomó esta decisión?
-- Se ha evolucionado la paleta hacia tonos *Slate* y azules vibrantes inspirados en TailwindCSS.
-- El azul (#3B82F6) evoca confianza, profesionalidad y encaja mejor con una aplicación B2B/B2C tecnológica.
-- Los grises azulados del fondo (Slate) reducen la fatiga visual en comparación con el negro puro o grises cálidos.
-- Se ha implementado Glassmorphism sutil (gradientes `linear-gradient(145deg, #1E293B, #0F172A)` y bordes translúcidos) para dar profundidad y modernidad a las tarjetas UI.- El ángulo de 135° sigue la dirección natural de lectura
+?Por que se tomo esta decision?
+- Se ha evolucionado la paleta hacia tonos Slate y azules vibrantes inspirados en TailwindCSS.
+- El azul (#3B82F6) evoca confianza y profesionalidad, adecuado para una aplicacion B2B/B2C tecnologica.
+- Los grises azulados del fondo (Slate) reducen la fatiga visual en comparacion con el negro puro.
+- Se ha implementado Glassmorphism sutil (gradientes linear-gradient y bordes translucidos)
+  para dar profundidad y modernidad a las tarjetas de la interfaz.
 
 ------------------------------------------------------------------------------
-DECISIÓN #4: Estructura del Proyecto - Multipágina
+DECISION #4: Estructura del Proyecto - Multipagina
 ------------------------------------------------------------------------------
 Fecha: 2026-02-09
 Estado: Implementada
 
-¿Qué se decidió?
-Organizar la aplicación en 5 páginas principales:
-1. 🏠 Inicio: Página de bienvenida y resumen
-2. 📋 Cargar Menú: Funcionalidad para subir/crear menús
-3. ⚙️ Restricciones: Configuración de preferencias alimentarias
-4. 🎯 Recomendaciones: Algoritmo de recomendación de menús
-5. 📊 Historial: Registro de menús anteriores
+?Que se decidio?
+Organizar la aplicacion en paginas principales:
+  1. Login:          Pantalla de autenticacion (publica)
+  2. Inicio:         Pagina de bienvenida y resumen
+  3. Cargar Menu:    Funcionalidad para subir/crear menus
+  4. Restricciones:  Configuracion de preferencias alimentarias
+  5. Recomendaciones:Algoritmo de recomendacion de menus
+  6. Carta Completa: Pedido manual sin recomendador
+  7. Historial:      Registro de menus anteriores
+  8. Admin:          Panel de administracion (solo admin)
 
-¿Por qué se tomó esta decisión?
-- Streamlit soporta navegación multipágina nativa (carpeta /pages)
-- Separación clara de responsabilidades (Single Responsibility)
-- Cada página tiene un propósito específico
-- Los emojis en nombres mejoran la navegabilidad visual
-- Orden lógico del flujo de usuario
+?Por que se tomo esta decision?
+- Streamlit soporta navegacion multipagina nativa (carpeta /pages)
+- Separacion clara de responsabilidades (Single Responsibility)
+- Cada pagina tiene un proposito especifico
+- Orden logico del flujo de usuario
 
 Estructura de carpetas:
 TFG/
-├── app.py              # Punto de entrada, configuración global
-├── pages/              # Páginas de la aplicación
-│   ├── 1_🏠_Inicio.py
-│   ├── 2_📋_Cargar_Menu.py
-│   ├── 3_⚙️_Restricciones.py
-│   ├── 4_🎯_Recomendaciones.py
-│   └── 5_📊_Historial.py
-├── utils/              # Utilidades y componentes reutilizables
-│   ├── __init__.py
-│   ├── theme.py        # Estilos y CSS
-│   └── components.py   # Componentes UI reutilizables
-└── .streamlit/         # Configuración de Streamlit
-    └── config.toml
+|-- app.py              # Punto de entrada, configuracion global
+|-- pages/              # Paginas de la aplicacion
+|   |-- 0_Login.py
+|   |-- 1_Inicio.py
+|   |-- 2_Cargar_Menu.py
+|   |-- 3_Restricciones.py
+|   |-- 4_Recomendaciones.py
+|   |-- 5_Historial.py
+|   |-- 6_Admin.py
+|   +-- 7_Carta_Completa.py
+|-- utils/              # Utilidades y componentes reutilizables
+|   |-- __init__.py
+|   |-- theme.py        # Estilos y CSS
+|   +-- components.py   # Componentes UI reutilizables
++-- .streamlit/         # Configuracion de Streamlit
+    +-- config.toml
 
 ------------------------------------------------------------------------------
-DECISIÓN #5: Gestión de Estado con st.session_state
+DECISION #5: Gestion de Estado con st.session_state
 ------------------------------------------------------------------------------
 Fecha: 2026-02-09
 Estado: Implementada
 
-¿Qué se decidió?
-- Usar st.session_state para mantener el estado global de la aplicación.
+?Que se decidio?
+- Usar st.session_state para mantener el estado global de la aplicacion.
 - Estructuras de datos principales:
-  * menus: Lista de menús cargados
+  * menus: Lista de menus cargados
   * restricciones: Diccionario con preferencias del usuario
-  * historial: Lista de menús seleccionados anteriormente
+  * historial: Lista de menus seleccionados anteriormente
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - session_state es el mecanismo nativo de Streamlit para persistencia
-- Permite compartir datos entre páginas sin base de datos
+- Permite compartir datos entre paginas sin base de datos
 - Suficiente para un MVP/prototipo
-- Inicialización centralizada en app.py para consistencia
+- Inicializacion centralizada en app.py para consistencia
 
 Estructura de restricciones:
 {
-    "presupuesto_max": 15.0,    # Euros máximo por menú
-    "calorias_max": 800,        # Calorías máximo por menú
+    "presupuesto_max": 15.0,    # Euros maximo por menu
+    "calorias_max": 800,        # Calorias maximo por menu
     "vegetariano": False,
     "vegano": False,
     "sin_gluten": False,
-    "sin_lactosa": False
+    "sin_lactosa": False,
+    "sin_frutos_secos": False,
+    "sin_huevo": False,
+    "bajo_sal": False
 }
 
 Limitaciones conocidas:
 - Los datos se pierden al cerrar el navegador
 - No hay persistencia entre sesiones
-- Para producción, considerar base de datos (SQLite, PostgreSQL)
+- Para produccion, considerar base de datos (SQLite, PostgreSQL)
 
 ------------------------------------------------------------------------------
-DECISIÓN #6: Sistema de Autenticación con 3 Roles de Usuario
+DECISION #6: Sistema de Autenticacion con 3 Roles de Usuario
 ------------------------------------------------------------------------------
 Fecha: 2026-02-10
 Estado: Implementada
 
-¿Qué se decidió?
+?Que se decidio?
 - Implementar un sistema de login/registro con 3 roles de usuario:
-  * Administrador (admin): Acceso total + panel de gestión de usuarios
-  * Restaurante: Puede cargar y gestionar menús
-  * Usuario: Puede ver menús, configurar restricciones, recibir
+  * Administrador (admin): Acceso total + panel de gestion de usuarios
+  * Restaurante: Puede cargar y gestionar menus
+  * Usuario: Puede ver menus, configurar restricciones, recibir
     recomendaciones y consultar historial
 
-¿Por qué se tomó esta decisión?
-- La aplicación necesita diferenciar quién carga menús (restaurantes)
-  de quién los consume (usuarios)
-- Un rol de administrador es necesario para la gestión del sistema
-- Cada rol tiene una experiencia de usuario diferente y específica
+?Por que se tomo esta decision?
+- La aplicacion necesita diferenciar quien carga menus (restaurantes)
+  de quien los consume (usuarios)
+- Un rol de administrador es necesario para la gestion del sistema
+- Cada rol tiene una experiencia de usuario diferente y especifica
 
-Implementación técnica:
-- Módulo de autenticación: utils/auth.py
-- Almacenamiento: data/users.json (JSON local con contraseñas bcrypt)
-- Guardias de acceso: require_auth(allowed_roles) en cada página
-- Sesión: st.session_state["current_user"]
+Implementacion tecnica:
+- Modulo de autenticacion: utils/auth.py
+- Almacenamiento: SQLite (data/menumatch.db, tabla usuarios)
+- Guardias de acceso: require_auth(allowed_roles) en cada pagina
+- Sesion: st.session_state["current_user"]
 - Admin por defecto: admin / admin123
 
-¿Por qué JSON local y no base de datos?
-- Consistente con la decisión #5 de mantener el MVP simple
-- No añade dependencias externas (SQLite, PostgreSQL)
-- Suficiente para prototipo/demostración del TFG
-- Contraseñas hasheadas con bcrypt para seguridad básica
+?Por que bcrypt y no texto plano?
+- Las contrasenas se almacenan hasheadas con bcrypt para garantizar
+  que, aunque la BD quede expuesta, las credenciales no sean recuperables.
 
-Control de acceso por página:
-- Login (0_🔐_Login.py): Público, sin autenticación
-- Inicio (1_🏠_Inicio.py): Todos los roles autenticados
-- Cargar Menú (2_📋_Cargar_Menu.py): restaurante, admin
-- Restricciones (3_⚙️_Restricciones.py): usuario, admin
-- Recomendaciones (4_🎯_Recomendaciones.py): usuario, admin
-- Historial (5_📊_Historial.py): usuario, admin
-- Admin (6_👑_Admin.py): solo admin
+Control de acceso por pagina:
+- Login (0_Login.py): Publico, sin autenticacion
+- Inicio (1_Inicio.py): Todos los roles autenticados
+- Cargar Menu (2_Cargar_Menu.py): restaurante, admin
+- Restricciones (3_Restricciones.py): usuario, admin
+- Recomendaciones (4_Recomendaciones.py): usuario, admin
+- Historial (5_Historial.py): usuario, admin
+- Admin (6_Admin.py): solo admin
 
 Alternativas consideradas:
-- Streamlit Authenticator: Librería externa, menos control
-- Firebase Auth: Requiere cuenta de Google Cloud y conexión a internet
-- SQLite: Más robusto pero innecesario para MVP
+- Streamlit Authenticator: Libreria externa, menos control
+- Firebase Auth: Requiere cuenta de Google Cloud y conexion a internet
+- SQLite: Mas robusto pero innecesario para MVP (finalmente se adopto en Decision #11)
 
 Archivos relacionados:
-  utils/auth.py, pages/0_🔐_Login.py, pages/6_👑_Admin.py
+  utils/auth.py, pages/0_Login.py, pages/6_Admin.py
 
 ------------------------------------------------------------------------------
-DECISIÓN #7: Sidebar Compartido con Cierre de Sesión
+DECISION #7: Sidebar Compartido con Cierre de Sesion
 ------------------------------------------------------------------------------
 Fecha: 2026-02-10
 Estado: Implementada
 
-¿Qué se decidió?
-- Crear una función render_sidebar() en utils/auth.py que renderiza
-  la barra lateral con la información del usuario y un botón de logout.
-- Llamar a esta función desde TODAS las páginas autenticadas.
+?Que se decidio?
+- Crear una funcion render_sidebar() en utils/auth.py que renderiza
+  la barra lateral con la informacion del usuario y un boton de logout.
+- Llamar a esta funcion desde TODAS las paginas autenticadas.
 
-¿Por qué se tomó esta decisión?
-- En Streamlit, cada página se ejecuta de forma independiente. El sidebar
-  definido en app.py NO persiste cuando el usuario navega a otra página.
-- Sin un sidebar compartido, el usuario no tenía forma de cerrar sesión
-  desde las páginas internas.
-- Centralizar el sidebar en una función garantiza consistencia visual
-  y evita duplicar código HTML en cada página.
+?Por que se tomo esta decision?
+- En Streamlit, cada pagina se ejecuta de forma independiente. El sidebar
+  definido en app.py NO persiste cuando el usuario navega a otra pagina.
+- Sin un sidebar compartido, el usuario no tenia forma de cerrar sesion
+  desde las paginas internas.
+- Centralizar el sidebar en una funcion garantiza consistencia visual
+  y evita duplicar codigo HTML en cada pagina.
 
 Alternativa descartada:
 - Definir el sidebar solo en app.py: No funciona porque Streamlit
-  rerenderiza todo el sidebar al navegar entre páginas.
+  rerenderiza todo el sidebar al navegar entre paginas.
 
 Archivos modificados:
-  utils/auth.py (nueva función render_sidebar)
-  + todas las páginas (1-6): llamada a render_sidebar() tras require_auth()
+  utils/auth.py (nueva funcion render_sidebar)
+  + todas las paginas (1-6): llamada a render_sidebar() tras require_auth()
 
 ------------------------------------------------------------------------------
-DECISIÓN #8: CRUD Completo de Usuarios en Panel Admin
+DECISION #8: CRUD Completo de Usuarios en Panel Admin
 ------------------------------------------------------------------------------
 Fecha: 2026-02-10
 Estado: Implementada
 
-¿Qué se decidió?
-- El panel de administración permite:
+?Que se decidio?
+- El panel de administracion permite:
   * CREAR usuarios de cualquier rol (incluido admin)
   * EDITAR nombre y rol de usuarios existentes
   * ELIMINAR usuarios (con protecciones)
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - Un administrador necesita control total sobre los usuarios del sistema.
-- Los admins deben poder crear otros admins sin usar el registro público.
+- Los admins deben poder crear otros admins sin usar el registro publico.
 - Se implementaron protecciones de seguridad:
-  * No se puede eliminar el último administrador
-  * No se puede cambiar el rol del último administrador
-  * Un admin no se puede eliminar a sí mismo desde el panel
+  * No se puede eliminar el ultimo administrador
+  * No se puede cambiar el rol del ultimo administrador
+  * Un admin no se puede eliminar a si mismo desde el panel
 
-¿Por qué dos funciones de creación (register_user vs admin_create_user)?
-- register_user: Usado en Login público, solo permite roles usuario/restaurante
+?Por que dos funciones de creacion (register_user vs admin_create_user)?
+- register_user: Usado en Login publico, solo permite roles usuario/restaurante
 - admin_create_user: Usado en panel admin, permite todos los roles incluido admin
-- Esto separa la lógica de negocio y evita que un usuario se auto-asigne admin
+- Esto separa la logica de negocio y evita que un usuario se auto-asigne admin
 
 Archivos relacionados:
   utils/auth.py (admin_create_user, update_user_nombre)
-  pages/6_👑_Admin.py
+  pages/6_Admin.py
 
 ------------------------------------------------------------------------------
-DECISIÓN #9: Navegación por Roles con st.navigation()
+DECISION #9: Navegacion por Roles con st.navigation()
 ------------------------------------------------------------------------------
 Fecha: 2026-02-10
-Estado: Implementada (sustituye parcialmente Decisión #7)
+Estado: Implementada (sustituye parcialmente Decision #7)
 
-¿Qué se decidió?
-- Usar st.navigation() de Streamlit para controlar qué páginas aparecen
-  en el sidebar según el rol del usuario.
-- Cada rol solo ve las páginas a las que tiene acceso.
+?Que se decidio?
+- Usar st.navigation() de Streamlit para controlar que paginas aparecen
+  en el sidebar segun el rol del usuario.
+- Cada rol solo ve las paginas a las que tiene acceso.
 - El sidebar con info del usuario y logout se gestiona desde app.py,
-  eliminando la necesidad de render_sidebar() en cada página.
-- Se eliminó st.set_page_config() de todas las páginas individuales
+  eliminando la necesidad de render_sidebar() en cada pagina.
+- Se elimino st.set_page_config() de todas las paginas individuales
   (ahora solo existe en app.py).
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - El enfoque anterior (render_sidebar + require_auth con error) mostraba
-  TODAS las páginas en el sidebar y bloqueaba con un mensaje de error.
-- Esto es mala UX: el usuario no debería ver opciones que no puede usar.
+  TODAS las paginas en el sidebar y bloqueaba con un mensaje de error.
+- Esto es mala UX: el usuario no deberia ver opciones que no puede usar.
 - st.navigation() es la API oficial de Streamlit para este caso de uso.
-- Centralizar set_page_config y sidebar en app.py simplifica el código
-  y elimina duplicación.
+- Centralizar set_page_config y sidebar en app.py simplifica el codigo
+  y elimina duplicacion.
 
 Visibilidad por rol:
-  👤 Usuario:      Inicio, Restricciones, Recomendaciones, Historial
-  🍽️ Restaurante:  Inicio, Cargar Menú
-  👑 Admin:        Todas las páginas + Panel Admin
+  Usuario:      Inicio, Restricciones, Recomendaciones, Historial
+  Restaurante:  Inicio, Cargar Menu
+  Admin:        Todas las paginas + Panel Admin
 
-Cambios técnicos:
+Cambios tecnicos:
 - app.py: Usa st.navigation() con listas de st.Page() filtradas por rol
-- Todas las páginas: Eliminado st.set_page_config() y render_sidebar()
+- Todas las paginas: Eliminado st.set_page_config() y render_sidebar()
 - require_auth(): Cambiado st.switch_page() a st.rerun()
 - Login: Cambiado st.switch_page() a st.rerun() tras login/registro
 
 Archivos modificados:
   app.py, utils/auth.py, utils/__init__.py
-  + todas las páginas (0-6)
+  + todas las paginas (0-6)
 
 ------------------------------------------------------------------------------
-DECISIÓN #10: Persistencia Compartida de Menús (data/menus.json)
+DECISION #10: Persistencia Compartida de Menus (data/menus.json)
 ------------------------------------------------------------------------------
 Fecha: 2026-02-10
 Estado: Implementada
 
-¿Qué se decidió?
-- Los menús (platos) se guardan en data/menus.json, un archivo compartido
+?Que se decidio?
+- Los menus (platos) se guardan en data/menus.json, un archivo compartido
   accesible por todos los usuarios.
-- Se creó utils/menu_storage.py con funciones de lectura/escritura.
-- Se eliminó la dependencia de st.session_state para los menús.
+- Se creo utils/menu_storage.py con funciones de lectura/escritura.
+- Se elimino la dependencia de st.session_state para los menus.
 
-¿Por qué se tomó esta decisión?
-- st.session_state es per-browser: un menú cargado por un restaurante
+?Por que se tomo esta decision?
+- st.session_state es per-browser: un menu cargado por un restaurante
   en su navegador NO era visible para un usuario en otro navegador.
-- Los menús deben ser globales — un restaurante los publica y todos
+- Los menus deben ser globales: un restaurante los publica y todos
   los usuarios los ven.
-- Se realiza un seguimiento del restaurante que subió cada plato
+- Se realiza un seguimiento del restaurante que subio cada plato
   (campo uploaded_by) y la fecha (uploaded_at).
 
-¿Por qué JSON y no base de datos?
-- Consistente con Decisión #5 (simplicidad MVP)
-- Mismo patrón que data/users.json — coherencia arquitectónica
-- Suficiente para demostración del TFG
+?Por que JSON y no base de datos?
+- Consistente con Decision #5 (simplicidad MVP)
+- Mismo patron que data/users.json (coherencia arquitectonica)
+- Suficiente para demostracion del TFG
+- Sustituido definitivamente por SQLite en la Decision #11
 
 Archivos relacionados:
   utils/menu_storage.py (NUEVO)
-  pages/1_🏠_Inicio.py, pages/2_📋_Cargar_Menu.py
-  pages/4_🎯_Recomendaciones.py, pages/6_👑_Admin.py
+  pages/1_Inicio.py, pages/2_Cargar_Menu.py
+  pages/4_Recomendaciones.py, pages/6_Admin.py
 
 ------------------------------------------------------------------------------
-DECISIÓN #11: Migración a SQLite — Base de Datos Relacional
+DECISION #11: Migracion a SQLite - Base de Datos Relacional
 ------------------------------------------------------------------------------
 Fecha: 2026-03-02
 Estado: Implementada (sustituye parcialmente Decisiones #5, #6 y #10)
 
-¿Qué se decidió?
+?Que se decidio?
 - Migrar toda la persistencia de JSON plano a SQLite (data/menumatch.db).
 - Crear 3 tablas: usuarios, menus, pedidos.
-- Implementar migración automática de datos JSON existentes.
-- Añadir nueva funcionalidad de "pedidos" (selección de menú + valoración).
+- Implementar migracion automatica de datos JSON existentes.
+- Anadir nueva funcionalidad de "pedidos" (seleccion de menu + valoracion).
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - Los archivos JSON no soportan consultas complejas ni concurrencia.
 - SQLite es una BD relacional completa incluida en Python (sqlite3),
   sin necesidad de instalar software adicional ni dependencias externas.
 - Ofrece ACID (atomicidad, consistencia, aislamiento, durabilidad),
-  integridad referencial y consultas SQL estándar.
+  integridad referencial y consultas SQL estandar.
 - Es ideal para aplicaciones de escritorio/prototipo y TFGs.
-- Permite evolucionar hacia PostgreSQL/MySQL en producción sin
-  cambiar la lógica de negocio (solo la cadena de conexión).
+- Permite evolucionar hacia PostgreSQL/MySQL en produccion sin
+  cambiar la logica de negocio (solo la cadena de conexion).
 
 Esquema de la base de datos:
 
@@ -380,18 +393,18 @@ Esquema de la base de datos:
     precio (REAL), calorias (INTEGER), valoracion (INTEGER 0-5),
     fecha (TEXT)
 
-Estrategia de migración:
+Estrategia de migracion:
 - Al iniciar la app, init_db() crea las tablas si no existen.
 - Si existen users.json / menus.json, los datos se importan
-  automáticamente a SQLite y los JSON se renombran a .json.bak.
-- Esto garantiza una transición transparente sin pérdida de datos.
+  automaticamente a SQLite y los JSON se renombran a .json.bak.
+- Esto garantiza una transicion transparente sin perdida de datos.
 
-Funcionalidad nueva — Pedidos:
-- Desde Recomendaciones, el usuario puede "Seleccionar este menú",
+Funcionalidad nueva - Pedidos:
+- Desde Recomendaciones, el usuario puede "Seleccionar este menu",
   lo que crea un registro en la tabla pedidos.
 - En Historial, se muestran los pedidos reales de la BD (no session_state).
 - El usuario puede valorar cada pedido con 1-5 estrellas,
-  lo que alimentará el futuro sistema de ML.
+  lo que alimenta el sistema de ML.
 
 Alternativas consideradas:
 - PostgreSQL: Requiere servidor externo, excesivo para TFG
@@ -399,20 +412,20 @@ Alternativas consideradas:
 - Mantener JSON: Insuficiente para pedidos y consultas complejas
 
 Archivos relacionados:
-  utils/database.py (NUEVO) — esquema, conexión, migración, CRUD pedidos
-  utils/auth.py (REESCRITO) — todas las operaciones SQL
-  utils/menu_storage.py (REESCRITO) — todas las operaciones SQL
-  pages/4_🎯_Recomendaciones.py (MODIFICADO) — botón "Seleccionar menú"
-  pages/5_📊_Historial.py (REESCRITO) — lee pedidos de BD + valoración
-  app.py (MODIFICADO) — eliminado session_state.historial
+  utils/database.py (NUEVO) -- esquema, conexion, migracion, CRUD pedidos
+  utils/auth.py (REESCRITO) -- todas las operaciones SQL
+  utils/menu_storage.py (REESCRITO) -- todas las operaciones SQL
+  pages/4_Recomendaciones.py (MODIFICADO) -- boton "Seleccionar menu"
+  pages/5_Historial.py (REESCRITO) -- lee pedidos de BD + valoracion
+  app.py (MODIFICADO) -- eliminado session_state.historial
 
 ------------------------------------------------------------------------------
-DECISIÓN #12: Restricciones Alimentarias Ampliadas para ML
+DECISION #12: Restricciones Alimentarias Ampliadas para ML
 ------------------------------------------------------------------------------
 Fecha: 2026-04-15
 Estado: Implementada
 
-¿Qué se decidió?
+?Que se decidio?
 - Ampliar el modelo de datos de platos con 4 nuevas restricciones
   alimentarias booleanas:
   * con_lactosa: Indica si el plato contiene lactosa
@@ -421,191 +434,193 @@ Estado: Implementada
   * bajo_sal: Indica si es bajo en sal
 - Total de restricciones: 6 (vegetariano, sin_gluten + 4 nuevas)
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - El modelo de Machine Learning necesita estas variables como features
   de entrada para generar recomendaciones personalizadas.
-- Cubren los alérgenos más comunes (lactosa, frutos secos, huevo)
-  y una preferencia dietética relevante (bajo en sal).
+- Cubren los alergenos mas comunes (lactosa, frutos secos, huevo)
+  y una preferencia dietetica relevante (bajo en sal).
 - Sin estas columnas, el modelo no puede filtrar ni ponderar
-  correctamente los platos según las restricciones del usuario.
+  correctamente los platos segun las restricciones del usuario.
 
-Cambios técnicos:
+Cambios tecnicos:
 - Base de datos (utils/database.py):
   * Esquema CREATE TABLE actualizado con 4 nuevas columnas BOOLEAN
-  * Nueva función _migrate_add_restriction_columns() que ejecuta
+  * Nueva funcion _migrate_add_restriction_columns() que ejecuta
     ALTER TABLE para bases de datos existentes (idempotente)
 - Almacenamiento (utils/menu_storage.py):
   * get_all_menus(): Lee las 4 nuevas columnas
   * add_menu_item(): Inserta las 4 nuevas columnas
   * add_menu_items(): Inserta las 4 nuevas columnas (CSV batch)
-- Página de carga (pages/2_📋_Cargar_Menu.py):
+- Pagina de carga (pages/2_Cargar_Menu.py):
   * Tab CSV: Formato esperado actualizado con las 6 columnas
-  * Tab Manual: Formulario con 2 filas × 3 columnas de checkboxes
+  * Tab Manual: Formulario con 2 filas x 3 columnas de checkboxes
   * Diccionario nuevo_plato: Incluye las 4 nuevas claves
-  * Visualización: Las restricciones se muestran en las tarjetas
+  * Visualizacion: Las restricciones se muestran en las tarjetas
 
-Migración de BD existente:
-- Al arrancar la app, _migrate_add_restriction_columns() añade las
+Migracion de BD existente:
+- Al arrancar la app, _migrate_add_restriction_columns() anade las
   columnas con ALTER TABLE si no existen.
 - Platos existentes reciben DEFAULT 0 (false) en las nuevas columnas.
-- La migración es idempotente: si las columnas ya existen, no falla.
+- La migracion es idempotente: si las columnas ya existen, no falla.
 
 Formato CSV actualizado:
   nombre, precio, calorias, vegetariano, sin_gluten, con_lactosa,
   con_frutos_secos, con_huevo, bajo_sal, categoria
 
 Archivos modificados:
-  utils/database.py (MODIFICADO) — esquema + migración ALTER TABLE
-  utils/menu_storage.py (MODIFICADO) — CRUD con 4 columnas nuevas
-  pages/2_📋_Cargar_Menu.py (MODIFICADO) — UI con 6 restricciones
+  utils/database.py (MODIFICADO) -- esquema + migracion ALTER TABLE
+  utils/menu_storage.py (MODIFICADO) -- CRUD con 4 columnas nuevas
+  pages/2_Cargar_Menu.py (MODIFICADO) -- UI con 6 restricciones
 
 ------------------------------------------------------------------------------
-DECISIÓN #13: Motor de Recomendación Heurístico (Basado en Reglas)
+DECISION #13: Motor de Recomendacion Heuristico (Basado en Reglas)
 ------------------------------------------------------------------------------
 Fecha: 2026-04-15
 Estado: Implementada
 
-¿Qué se decidió?
-- Implementar el primer motor de recomendación del sistema como un
-  algoritmo heurístico basado en reglas (no ML) en dos fases:
-  * Fase 1 — Filtrado estricto (Hard Rules): elimina menús que no
-    cumplen las restricciones dietéticas del usuario o superan su
-    presupuesto máximo.
-  * Fase 2 — Puntuación ponderada (Soft Scoring): calcula un score
-    numérico para cada menú superviviente.
-- Reescribir la página de Recomendaciones con controles integrados
-  en el sidebar y visualización detallada de resultados.
+?Que se decidio?
+- Implementar el primer motor de recomendacion del sistema como un
+  algoritmo heuristico basado en reglas (no ML) en dos fases:
+  * Fase 1 - Filtrado estricto (Hard Rules): elimina menus que no
+    cumplen las restricciones dieteticas del usuario o superan su
+    presupuesto maximo.
+  * Fase 2 - Puntuacion ponderada (Soft Scoring): calcula un score
+    numerico para cada menu superviviente.
+- Reescribir la pagina de Recomendaciones con controles integrados
+  en el sidebar y visualizacion detallada de resultados.
 
-¿Por qué se tomó esta decisión?
+?Por que se tomo esta decision?
 - Es necesario tener un motor funcional antes de integrar ML.
-- La heurística permite validar el flujo completo (usuario configura
-  → sistema recomienda → usuario selecciona → se registra pedido)
+- La heuristica permite validar el flujo completo (usuario configura
+  -> sistema recomienda -> usuario selecciona -> se registra pedido)
   sin depender de datos de entrenamiento.
-- La satisfacción_media simulada (3.0) será reemplazada por
-  valoraciones reales de la tabla pedidos cuando se integre ML.
-- Los pesos (w1, w2, w3) son configurables desde la UI, lo que
-  permite experimentar con distintas prioridades.
+- Las valoraciones reales de los usuarios alimentan la tabla evaluaciones_menus
+  que se usa como dataset de entrenamiento del modelo ML.
 
-Fórmula de scoring (Rev. 4 - Simplificada a Baseline):
-  score = 1.0 - desviación_calórica - (precio_menu * 0.001)
+Formula de scoring (Rev. 4 - Simplificada a Baseline):
+  score = 1.0 - desviacion_calorica - (precio_menu * 0.001)
 
-  Si calorías_menu < 0.60 * calorías_objetivo:
-    score = score * 0.1 (Penalización drástica por déficit severo)
+  Si calorias_menu < 0.60 * calorias_objetivo:
+    score = score * 0.1 (Penalizacion drastica por deficit severo)
 
   Donde:
-    desviación_calórica = |calorías_menu - calorías_objetivo| / calorías_objetivo
+    desviacion_calorica = |calorias_menu - calorias_objetivo| / calorias_objetivo
 
-¿Por qué se simplificó (Rev. 4)?
-- Por indicación académica, el motor original era "demasiado agresivo" al premiar el ahorro de dinero, lo que provocaba sesgos hacia menús muy baratos pero insuficientes.
-- El presupuesto ahora actúa únicamente como límite absoluto (filtro previo), no como fuente de puntos.
-- Las calorías_objetivo dominan el 95% del score (score base = 1.0 - desviación).
-- El precio solo se usa como un factor de desempate minúsculo (-0.001 por céntimo/euro) para cuando dos menús empatan en calorías.
-- Se mantuvieron las plantillas y el hard-ban de postres/panes aislados para preservar el realismo del menú.
+?Por que se simplifico (Rev. 4)?
+- Por indicacion academica, el motor original era demasiado agresivo
+  al premiar el ahorro de dinero, lo que provocaba sesgos hacia menus
+  muy baratos pero nutricionalmente insuficientes.
+- El presupuesto ahora actua unicamente como limite absoluto (filtro previo),
+  no como fuente de puntos.
+- Las calorias_objetivo dominan el 95% del score (base = 1.0 - desviacion).
+- El precio solo se usa como factor de desempate (-0.001 por euro)
+  para cuando dos menus empatan en calorias.
+- Se mantuvieron las plantillas y el hard-ban de postres/panes aislados
+  para preservar el realismo del menu.
 
-Pesos anteriores (w1, w2, w3):
-    Aunque la UI todavía permite ajustar estos pesos para no romper implementaciones pasadas, internamente la función _calcular_score los ignora en favor de la fórmula lineal determinista.
-
-Mapeo de restricciones usuario → menú:
+Mapeo de restricciones usuario -> menu:
   Restricciones POSITIVAS (el plato DEBE tener la propiedad):
-    vegetariano   → menu.vegetariano == True
-    sin_gluten    → menu.sin_gluten  == True
-    bajo_sal      → menu.bajo_sal    == True
+    vegetariano   -> menu.vegetariano == True
+    sin_gluten    -> menu.sin_gluten  == True
+    bajo_sal      -> menu.bajo_sal    == True
   Restricciones NEGATIVAS (el plato NO DEBE tener la propiedad):
-    sin_lactosa       → menu.con_lactosa       == False
-    sin_frutos_secos  → menu.con_frutos_secos  == False
-    sin_huevo         → menu.con_huevo          == False
+    sin_lactosa       -> menu.con_lactosa       == False
+    sin_frutos_secos  -> menu.con_frutos_secos  == False
+    sin_huevo         -> menu.con_huevo          == False
 
-Generación de combinaciones de menú:
-- Se utiliza normalización de texto (.lower().strip()) y coincidencias por subcadenas ("postre" in categoria) para agrupar platos de forma robusta y evitar descartes por plurales o errores tipográficos.
-- Se combinan platos de categorías Primero/Entrante con Segundo/Principal
-  para crear menús de 2 platos, y se añaden Postres/Acompañamientos en las plantillas Ligero y Completo.
-- Nueva plantilla 'Tradicional': Permite combinar [1 Primero + 1 Segundo + 1 Postre + 1 Acompañamiento] en el mismo menú, ampliando el abanico para cuando el usuario tenga presupuestos o requisitos calóricos amplios.
+Generacion de combinaciones de menu:
+- Se utiliza normalizacion de texto (.lower().strip()) y coincidencias
+  por subcadenas ("postre" in categoria) para agrupar platos de forma
+  robusta y evitar descartes por plurales o errores tipograficos.
+- Plantillas de menu implementadas:
+    - Clasico:     [1 Primero + 1 Segundo]
+    - Ligero:      [1 Primero/Entrante + 1 Segundo/Principal]
+    - Completo:    [1 Primero + 1 Segundo + 1 Postre]
+    - Tradicional: [1 Primero + 1 Segundo + 1 Postre + 1 Acompanamiento]
 - Restricciones positivas (vegetariano, sin_gluten, bajo_sal):
   el combo cumple solo si TODOS los platos cumplen.
 - Restricciones negativas (con_lactosa, con_frutos_secos, con_huevo):
-  el combo contiene si ALGÚN plato contiene (lógica de alérgenos).
-- Fallback: si no hay categorías suficientes para combinar, cada
-  plato individual se trata como un menú de 1 plato.
+  el combo contiene si ALGUN plato contiene (logica de alergenos).
+- Fallback: si no hay categorias suficientes para combinar, cada
+  plato individual se trata como un menu de 1 plato.
 
-Arquitectura del módulo:
+Arquitectura del modulo:
   utils/recomendador_heuristico.py contiene:
     - _cumple_restricciones(): Filtrado booleano por restricciones
-    - _calcular_score(): Fórmula de puntuación ponderada
-    - recomendar_menu_heuristico(): Retorna el mejor menú o None
-    - recomendar_top_n(): Retorna los N mejores menús
+    - _calcular_score(): Formula de puntuacion ponderada
+    - recomendar_menu_heuristico(): Retorna el mejor menu o None
+    - recomendar_top_n(): Retorna los N mejores menus
     - generar_combinaciones_menu(): Crea combos desde platos sueltos
     - _combinar_platos(): Agrega datos de varios platos en un dict
 
-Página de Recomendaciones (reescrita):
+Pagina de Recomendaciones (reescrita):
   Sidebar integrado con:
-    - Slider de presupuesto (€5-30)
-    - Number input de calorías objetivo (300-2000)
-    - 6 checkboxes de restricciones dietéticas
-    - Expander con sliders de pesos w1/w2/w3
-  Área principal con:
+    - Slider de presupuesto (5-30 euros)
+    - Number input de calorias objetivo (300-2000)
+    - 6 checkboxes de restricciones dieteticas
+    - Expander con pesos del algoritmo
+  Area principal con:
     - Resumen de filtros activos (badges)
-    - Botón "Buscar Menú Óptimo"
-    - Card hero del menú recomendado con métricas
-    - Sección de alternativas (runners-up)
+    - Boton "Buscar Menu Optimo"
+    - Card del menu recomendado con metricas
+    - Seccion de alternativas
     - Transparencia del algoritmo (desglose scoring)
-    - Botón "Seleccionar este menú" (crea pedido)
+    - Boton "Seleccionar este menu" (crea pedido)
 
 Archivos creados/modificados:
-  utils/recomendador_heuristico.py (NUEVO) — motor de recomendación
-  pages/4_🎯_Recomendaciones.py (REESCRITO) — UI con heurístico
+  utils/recomendador_heuristico.py (NUEVO) -- motor de recomendacion
+  pages/4_Recomendaciones.py (REESCRITO) -- UI con heuristico
 
 ------------------------------------------------------------------------------
-DECISIÓN #14: Carta Completa para visualización sin recomendaciones
+DECISION #14: Carta Completa para visualizacion sin recomendaciones
 ------------------------------------------------------------------------------
 Fecha: 2026-04-20
 Estado: Implementada
 
-¿Qué se decidió?
-- Añadir una nueva página llamada "Carta Completa" (pages/7_📖_Carta_Completa.py)
+?Que se decidio?
+- Anadir una nueva pagina llamada "Carta Completa" (pages/7_Carta_Completa.py)
   donde los administradores y usuarios pueden ver todos los platos cargados
-  y realizar un pedido saltándose el motor de recomendación heurístico.
+  y realizar un pedido saltandose el motor de recomendacion heuristico.
 
-¿Por qué se tomó esta decisión?
-- Era necesario proporcionar a los usuarios la autonomía de seleccionar su
-  menú sin depender siempre del recomendador, para casos donde ya saben 
-  qué quieren comer.
+?Por que se tomo esta decision?
+- Era necesario proporcionar a los usuarios la autonomia de seleccionar su
+  menu sin depender siempre del recomendador, para casos donde ya saben
+  que quieren comer.
 
-Cambios técnicos:
-- Se añadió un listado renderizado con componentes Streamlit nativos
+Cambios tecnicos:
+- Se anadio un listado renderizado con componentes Streamlit nativos
   (st.checkbox) vinculados a st.session_state para mantener la cuenta de
-  los platos en la selección actual.
-- Se implementó un panel lateral estático para visualizar el "carrito" o
-  pedido en progreso.
-- Se integró create_pedido de utils.database al darle a "Hacer Pedido".
-- Se añadió \`pages/7_📖_Carta_Completa.py\` al archivo de enrutamiento \`app.py\`
-  entre Recomendaciones e Historial.
+  los platos en la seleccion actual.
+- Se implemento un panel lateral estatico para visualizar el pedido en progreso.
+- Se integro create_pedido de utils.database al confirmar el pedido.
+- Se anadio pages/7_Carta_Completa.py al archivo de enrutamiento app.py.
 
 Archivos creados/modificados:
-  pages/7_📖_Carta_Completa.py (NUEVO) — Interfaz de "carrito"
-  app.py (MODIFICADO) — Agregado al Sidebar
+  pages/7_Carta_Completa.py (NUEVO) -- Interfaz de pedido manual
+  app.py (MODIFICADO) -- Agregado al sidebar
 
 ------------------------------------------------------------------------------
-DECISIÓN #15: Formulario de Evaluación y tabla evaluaciones_menus
+DECISION #15: Formulario de Evaluacion y tabla evaluaciones_menus
 ------------------------------------------------------------------------------
 Fecha: 2026-04-20
 Estado: Implementada
 
-¿Qué se decidió?
+?Que se decidio?
 - Crear una nueva tabla SQLite 'evaluaciones_menus' para recoger feedback
-  estructurado del usuario sobre cada menú recomendado.
-- Insertar un formulario de evaluación (st.form) dentro de la página de
-  Recomendaciones, justo tras el menú ganador y antes de las alternativas.
+  estructurado del usuario sobre cada menu recomendado.
+- Insertar un formulario de evaluacion (st.form) dentro de la pagina de
+  Recomendaciones, justo tras el menu ganador y antes de las alternativas.
 
-¿Por qué se tomó esta decisión?
-- El futuro modelo de Machine Learning necesita datos de entrenamiento
-  etiquetados con la percepción real del usuario.
-- El formulario captura 3 señales clave:
-    1. Satisfacción general (1-5)
-    2. Relación calidad-precio (1-5)
-    3. ¿Elegiría realmente este menú? (Sí/No)
-- Además, cada registro persiste el contexto completo de la recomendación:
-  platos, precio, calorías, score heurístico, tipo de recomendación
-  ('heuristic' / futuro 'ml') y las restricciones activas del usuario.
+?Por que se tomo esta decision?
+- El modelo de Machine Learning necesita datos de entrenamiento
+  etiquetados con la percepcion real del usuario.
+- El formulario captura 3 senales clave:
+    1. Satisfaccion general (1-5)
+    2. Relacion calidad-precio (1-5)
+    3. Elegiria realmente este menu? (Si/No)
+- Cada registro persiste el contexto completo de la recomendacion:
+  platos, precio, calorias, score heuristico, tipo de recomendacion
+  ('heuristic' / 'ml') y las restricciones activas del usuario.
 
 Esquema de la tabla evaluaciones_menus:
   id                  INTEGER PK AUTOINCREMENT
@@ -622,40 +637,41 @@ Esquema de la tabla evaluaciones_menus:
   fecha               TEXT NOT NULL DEFAULT datetime('now')
 
 Archivos creados/modificados:
-  utils/database.py (MODIFICADO) — Nueva tabla + create_evaluacion()
+  utils/database.py (MODIFICADO) -- Nueva tabla + create_evaluacion()
                                    + get_all_evaluaciones()
-  pages/4_Recomendaciones.py (MODIFICADO) — Formulario de evaluación
+  pages/4_Recomendaciones.py (MODIFICADO) -- Formulario de evaluacion
 
 ------------------------------------------------------------------------------
-DECISIÓN #16: Persistencia Automática en Google Sheets (Backup Externo)
+DECISION #16: Persistencia Automatica en Google Sheets (Backup Externo)
 ------------------------------------------------------------------------------
 Fecha: 2026-04-22
 Estado: Implementada
 
-¿Qué se decidió?
-- Añadir una capa de persistencia complementaria en Google Sheets que
-  sincroniza cada evaluación de menú en una hoja de cálculo externa
+?Que se decidio?
+- Anadir una capa de persistencia complementaria en Google Sheets que
+  sincroniza cada evaluacion de menu en una hoja de calculo externa
   llamada 'MenuMatch_Data'.
-- La conexión se realiza mediante gspread + google-auth, leyendo las
+- La conexion se realiza mediante gspread + google-auth, leyendo las
   credenciales de cuenta de servicio desde st.secrets["GOOGLE_CREDENTIALS"].
-- La función save_to_google_sheets() se invoca justo después del
+- La funcion save_to_google_sheets() se invoca justo despues del
   INSERT en SQLite, envuelta en try-except para no bloquear la app.
 
-¿Por qué se tomó esta decisión?
-- Streamlit Community Cloud utiliza un sistema de archivos efímero:
+?Por que se tomo esta decision?
+- Streamlit Community Cloud utiliza un sistema de archivos efimero:
   cada redeploy o reinicio del servidor borra el archivo SQLite.
-- Las evaluaciones de los usuarios son datos valiosos para el futuro
+- Las evaluaciones de los usuarios son datos valiosos para el
   modelo de ML y no deben perderse entre reinicios.
-- Google Sheets actúa como almacenamiento persistente y accesible,
-  permitiendo además consultar los datos desde cualquier navegador
+- Google Sheets actua como almacenamiento persistente y accesible,
+  permitiendo ademas consultar los datos desde cualquier navegador
   sin necesidad de acceder al servidor.
-- El patrón "fire-and-forget" con try-except garantiza que un fallo
+- El patron "fire-and-forget" con try-except garantiza que un fallo
   en la API de Google nunca interrumpe la experiencia del usuario.
 
-Implementación técnica:
-- Nuevo módulo: utils/google_sheets.py
+Implementacion tecnica:
+- Nuevo modulo: utils/google_sheets.py
   * _get_google_sheets_client(): Crea cliente gspread autorizado
-  * save_to_google_sheets(datos): Añade fila a la hoja de cálculo
+  * save_to_google_sheets(datos): Anade fila a la hoja de calculo
+  * get_all_data_from_sheets(): Lee todos los registros historicos
 - Dependencias nuevas: gspread>=6.0.0, google-auth>=2.20.0
 - Credenciales: Se leen de st.secrets["GOOGLE_CREDENTIALS"] (JSON
   de cuenta de servicio de Google Cloud) con scopes de Sheets y Drive.
@@ -665,7 +681,7 @@ Columnas de la hoja 'MenuMatch_Data':
   recommendation_type | restricciones (JSON) | satisfaccion |
   calidad_precio | elegiria_real | fecha
 
-Configuración necesaria en .streamlit/secrets.toml (local) o en
+Configuracion necesaria en .streamlit/secrets.toml (local) o en
 Streamlit Cloud (Settings > Secrets):
   [GOOGLE_CREDENTIALS]
   type = "service_account"
@@ -676,22 +692,182 @@ Streamlit Cloud (Settings > Secrets):
   ...
 
 Archivos creados/modificados:
-  utils/google_sheets.py (NUEVO) — Cliente gspread + save_to_google_sheets()
-  pages/4_Recomendaciones.py (MODIFICADO) — Llamada tras create_evaluacion()
-  requirements.txt (MODIFICADO) — gspread + google-auth
+  utils/google_sheets.py (NUEVO) -- Cliente gspread + funciones de acceso
+  pages/4_Recomendaciones.py (MODIFICADO) -- Llamada tras create_evaluacion()
+  requirements.txt (MODIFICADO) -- gspread + google-auth
+
+------------------------------------------------------------------------------
+DECISION #17: Pipeline de Machine Learning - Dataset Limpio
+------------------------------------------------------------------------------
+Fecha: 2026-05-08
+Estado: Implementada
+
+?Que se decidio?
+- Crear el modulo utils/ml_pipeline.py con la funcion get_clean_dataset()
+  que extrae, transforma y limpia los datos de evaluaciones para entrenar.
+- Hibridacion Inteligente de Datos: El pipeline prioriza extraer
+  los datos de Google Sheets (Cloud). Si la conexion falla, no hay credenciales,
+  o el dataset esta vacio, aplica un fallback automatico a SQLite (Local).
+  Implementa normalizacion de columnas para compatibilidad de esquemas.
+- Anadir scikit-learn>=1.2.0 y joblib>=1.2.0 a requirements.txt.
+
+?Por que se tomo esta decision?
+- Los datos de inferencia y entrenamiento deben procesarse identicamente.
+- La mayoria de las evaluaciones reales generadas en produccion se almacenan
+  en Google Sheets. Conectar el pipeline directamente a la nube permite
+  reentrenar el modelo con datos frescos sin migraciones manuales.
+
+Feature engineering implementado:
+  presupuesto_max  -> Extraido de restricciones_json con fallback 15.0
+  price_ratio      -> precio / presupuesto_max (clip lower=0.01)
+  satisfied        -> 1 si satisfaccion >= 4, 0 si satisfaccion <= 3
+
+Columnas del DataFrame final:
+  ['id', 'calorias', 'precio', 'presupuesto_max', 'price_ratio',
+   'score', 'recommendation_type', 'satisfied']
+
+Columnas excluidas (motivo):
+  calidad_precio   -> Redundante con satisfied (deriva de la misma opinion)
+  restricciones_json, platos, fecha, username -> No predictivos
+
+Gestion de edge cases:
+  - BD vacia: devuelve DataFrame vacio con esquema correcto (no falla)
+  - JSON invalido: fallback a 15.0 para presupuesto_max
+  - Division por cero en price_ratio: clip(lower=0.01)
+
+Archivos creados/modificados:
+  utils/ml_pipeline.py (NUEVO) -- funcion get_clean_dataset()
+  requirements.txt (MODIFICADO) -- scikit-learn, joblib
+
+------------------------------------------------------------------------------
+DECISION #18: Panel Admin - Exportacion Bidireccional con Pestanas
+------------------------------------------------------------------------------
+Fecha: 2026-05-08
+Estado: Implementada
+
+?Que se decidio?
+- Redisenar la seccion "Exportar Datos de Investigacion" del Panel Admin
+  con dos pestanas (st.tabs):
+    Google Sheets (nube) -- Datos historicos completos, descarga bajo demanda
+    SQLite (local)       -- Datos de la sesion actual, siempre disponibles
+- La pestana de Sheets se activa con un boton explicito (no en el page load)
+  para evitar bloqueos en entornos sin credenciales.
+- Anadir utils/google_sheets.py: nueva funcion get_all_data_from_sheets()
+  que lee todos los registros de la primera hoja de MenuMatch_Data.
+- Visualizacion del dataset preprocesado para ML en un st.expander con
+  metricas de distribucion de clases (total, positivos, negativos).
+
+?Por que se tomo esta decision?
+- La exportacion automatica al cargar la pagina fallaba en local (sin
+  GOOGLE_CREDENTIALS configurado), mostrando un error rojo confuso.
+- El patron de dos pestanas permite al admin acceder a los datos en
+  cualquier entorno: con conexion a Sheets en produccion, o con SQLite
+  en local durante el desarrollo.
+- El boton explicito "Cargar datos" implementa lazy loading: la conexion
+  de red solo se ejecuta cuando el admin la solicita, mejorando el tiempo
+  de carga inicial de la pagina.
+
+Manejo de errores por entorno:
+  ConnectionError -> Sheets no disponible (sin credenciales): mensaje claro
+                     con instrucciones para configurar secrets.toml local
+  RuntimeError    -> Fallo de red o API en produccion: st.error descriptivo
+
+Configuracion local de secretos:
+  .streamlit/secrets.toml (excluido de Git por seguridad)
+  Formato: GOOGLE_CREDENTIALS = '''{ JSON de cuenta de servicio }'''
+
+Archivos creados/modificados:
+  utils/google_sheets.py (MODIFICADO) -- get_all_data_from_sheets()
+  pages/6_Admin.py (MODIFICADO) -- st.tabs + expander ML dataset
+  .streamlit/secrets.toml (NUEVO) -- template de credenciales locales
+  .gitignore (MODIFICADO) -- secrets.toml anadido a la lista de exclusiones
+
+------------------------------------------------------------------------------
+DECISION #19: Entrenamiento de Modelo ML (Regresion Logistica)
+------------------------------------------------------------------------------
+Fecha: 2026-05-08
+Estado: Implementada
+
+?Que se decidio?
+- Crear utils/ml_model.py para el entrenamiento y evaluacion de un
+  modelo de Regresion Logistica.
+- Integrar la ejecucion del entrenamiento en el Panel Admin mediante
+  un boton en la seccion de datos preprocesados.
+
+?Por que se tomo esta decision?
+- Proveer un clasificador binario ('satisfied' = 1/0) para mejorar las
+  recomendaciones en produccion mediante el Test A/B.
+- Encapsular la logica ML fuera de la UI, exponiendo metricas simples
+  (accuracy, confusion_matrix, etc.) mediante diccionarios serializables.
+
+Detalles Tecnicos:
+- Variables predictivas: ['calorias', 'price_ratio', 'score']
+- Estandarizacion: StandardScaler()
+- Algoritmo: LogisticRegression(max_iter=1000)
+- Guardado: models/logistic_model.joblib y models/scaler.joblib
+
+Archivos creados/modificados:
+  utils/ml_model.py (NUEVO) -- Logica de entrenamiento ML
+  pages/6_Admin.py (MODIFICADO) -- Interfaz de entrenamiento y metricas
+
+------------------------------------------------------------------------------
+DECISION #22: Rediseno del Panel de Administracion
+------------------------------------------------------------------------------
+Fecha: 2026-05-10
+Estado: Implementada
+
+?Que se decidio?
+- Reestructurar el panel de administracion en un cuadro de mando profesional.
+- Implementar un bloque de metricas rapidas que muestra: total de usuarios,
+  total de evaluaciones, ratio A/B Test y la accuracy del modelo ML actual.
+- Dividir el contenido en tres pestanas principales:
+    - Gestion de Datos: exportacion a CSV desde Google Sheets o SQLite local.
+    - Inteligencia Artificial: visualizacion del dataset y reentrenamiento ML.
+    - Configuracion y Logs: CRUD completo de usuarios.
+
+?Por que se tomo esta decision?
+- La estructura anterior mezclaba funcionalidades dispares sin jerarquia visual.
+- La organizacion en pestanas optimiza el espacio y agrupa las funcionalidades
+  relacionadas, lo que facilita la navegacion al administrador.
+
+Archivos modificados:
+  pages/6_Admin.py (REESCRITO)
+
+------------------------------------------------------------------------------
+DECISION #23: Mejora UI Gestion Usuarios y Ocultacion Documentacion
+------------------------------------------------------------------------------
+Fecha: 2026-05-10
+Estado: Implementada
+
+?Que se decidio?
+- Eliminar el visor del documento de decisiones de pages/6_Admin.py,
+  ya que es un recurso interno para la elaboracion de la memoria del TFG
+  y no pertenece a la interfaz de produccion.
+- Redisenar la lista de usuarios usando st.container(border=True) para
+  enmarcar cada usuario y st.expander para ocultar las opciones de
+  edicion/eliminacion.
+
+?Por que se tomo esta decision?
+- El visor de documentacion en la UI de produccion no aporta valor al
+  administrador y puede generar confusion.
+- El uso de contenedores y expanders proporciona una interfaz mas clara
+  y estructurada, con menor carga visual en la vista principal.
+
+Archivos modificados:
+  pages/6_Admin.py (MODIFICADO)
 
 ================================================================================
-                          GUÍA DE INSTALACIÓN DEL PROYECTO
+                          GUIA DE INSTALACION DEL PROYECTO
 ================================================================================
 
-Este apartado documenta paso a paso cómo se ha montado el entorno de
+Este apartado documenta paso a paso como se ha montado el entorno de
 desarrollo del proyecto MenuMatch desde cero.
 
 --- Paso 1: Requisitos previos ---
-  • Python 3.10 o superior instalado en el sistema
-  • pip (gestor de paquetes de Python, incluido con Python)
-  • Git (opcional, para control de versiones)
-  • Editor de código (VS Code recomendado)
+  - Python 3.10 o superior instalado en el sistema
+  - pip (gestor de paquetes de Python, incluido con Python)
+  - Git (para control de versiones)
+  - Editor de codigo (VS Code recomendado)
 
 --- Paso 2: Crear la carpeta del proyecto ---
   Abrir una terminal (PowerShell en Windows) y ejecutar:
@@ -701,7 +877,7 @@ desarrollo del proyecto MenuMatch desde cero.
 
 --- Paso 3: Crear un entorno virtual de Python ---
   Se usa un entorno virtual (.venv) para aislar las dependencias del proyecto
-  y no contaminar la instalación global de Python.
+  y no contaminar la instalacion global de Python.
 
     python -m venv .venv
 
@@ -714,18 +890,15 @@ desarrollo del proyecto MenuMatch desde cero.
   el entorno virtual antes de trabajar en el proyecto.
 
 --- Paso 4: Instalar las dependencias ---
-  Con el entorno virtual activado, instalar Streamlit y las librerías:
+  Con el entorno virtual activado, instalar todas las librerias:
 
-    pip install streamlit
-    pip install bcrypt
-    pip install pandas
-    pip install pillow
+    pip install -r requirements.txt
 
-  Streamlit instala automáticamente muchas dependencias transitivas como
+  Streamlit instala automaticamente muchas dependencias transitivas como
   numpy, pyarrow, tornado, etc.
 
 --- Paso 5: Congelar las dependencias ---
-  Para documentar las versiones exactas de todas las librerías instaladas:
+  Para documentar las versiones exactas de todas las librerias instaladas:
 
     pip freeze > requirements.txt
 
@@ -735,21 +908,28 @@ desarrollo del proyecto MenuMatch desde cero.
     pip install -r requirements.txt
 
 --- Paso 6: Configurar el tema de Streamlit ---
-  Crear la carpeta y archivo de configuración:
+  Crear la carpeta y archivo de configuracion:
 
     mkdir .streamlit
-    (crear archivo .streamlit/config.toml con el contenido del tema oscuro)
 
   Contenido de .streamlit/config.toml:
     [theme]
-    primaryColor = "#00D4AA"
-    backgroundColor = "#0E1117"
-    secondaryBackgroundColor = "#1A1D24"
-    textColor = "#FAFAFA"
+    base = "dark"
+    primaryColor = "#3B82F6"
+    backgroundColor = "#0F172A"
+    secondaryBackgroundColor = "#1E293B"
+    textColor = "#E2E8F0"
     font = "sans serif"
+
+    [server]
+    headless = true
+    enableStaticServing = true
 
     [browser]
     gatherUsageStats = false
+
+    [client]
+    toolbarMode = "minimal"
 
 --- Paso 7: Crear la estructura de carpetas ---
 
@@ -757,12 +937,12 @@ desarrollo del proyecto MenuMatch desde cero.
     mkdir utils
     mkdir data
     mkdir assets
-    mkdir static
+    mkdir models
 
   Y crear los archivos __init__.py necesarios:
-    (crear utils/__init__.py vacío o con imports)
+    (crear utils/__init__.py vacio o con imports)
 
---- Paso 8: Primera ejecución ---
+--- Paso 8: Primera ejecucion ---
 
     streamlit run app.py
 
@@ -770,26 +950,28 @@ desarrollo del proyecto MenuMatch desde cero.
 
 --- Dependencias principales del proyecto (requirements.txt) ---
 
-  Librería          | Versión    | Uso
-  ──────────────────┼────────────┼──────────────────────────────────
+  Libreria          | Version    | Uso
+  ------------------+------------+-------------------------------------------
   streamlit         | 1.54.0     | Framework web principal
-  bcrypt            | >=4.0.0    | Hasheo seguro de contraseñas
-  pandas            | 2.3.3      | Manipulación de datos tabulares
-  pillow            | 12.1.0     | Procesamiento de imágenes
-  gspread           | >=6.0.0    | Cliente Python para Google Sheets (Decisión #16)
-  google-auth       | >=2.20.0   | Autenticación OAuth2 con Google (Decisión #16)
-  numpy             | 2.4.2      | Cálculos numéricos (dep. pandas)
+  bcrypt            | >=4.0.0    | Hasheo seguro de contrasenas
+  pandas            | 2.3.3      | Manipulacion de datos tabulares
+  pillow            | 12.1.0     | Procesamiento de imagenes
+  gspread           | >=6.0.0    | Cliente Python para Google Sheets
+  google-auth       | >=2.20.0   | Autenticacion OAuth2 con Google
+  scikit-learn      | >=1.2.0    | Machine Learning (Decision #19)
+  joblib            | >=1.2.0    | Persistencia de modelos ML (Decision #19)
+  numpy             | 2.4.2      | Calculos numericos (dep. pandas)
   pyarrow           | 23.0.0     | Backend de datos de Streamlit
   requests          | 2.32.5     | Peticiones HTTP (dep. streamlit)
   sqlite3           | (built-in) | Base de datos (incluido en Python)
 
 
 ================================================================================
-                       COMANDOS DE CONSOLA MÁS IMPORTANTES
+                       COMANDOS DE CONSOLA MAS IMPORTANTES
 ================================================================================
 
-A continuación se listan los comandos más relevantes que se han utilizado
-durante el desarrollo del proyecto, organizados por categoría.
+A continuacion se listan los comandos mas relevantes utilizados
+durante el desarrollo del proyecto, organizados por categoria.
 
 --- Entorno virtual ---
 
@@ -802,21 +984,9 @@ durante el desarrollo del proyecto, organizados por categoría.
   # Desactivar entorno virtual
   deactivate
 
---- Instalación de paquetes ---
+--- Instalacion de paquetes ---
 
-  # Instalar Streamlit (framework web)
-  pip install streamlit
-
-  # Instalar bcrypt (hasheo de contraseñas)
-  pip install bcrypt
-
-  # Instalar pandas (manipulación de datos)
-  pip install pandas
-
-  # Instalar pillow (procesamiento de imágenes)
-  pip install pillow
-
-  # Instalar TODAS las dependencias desde requirements.txt
+  # Instalar todas las dependencias desde requirements.txt
   pip install -r requirements.txt
 
   # Generar archivo de dependencias con versiones exactas
@@ -825,27 +995,24 @@ durante el desarrollo del proyecto, organizados por categoría.
   # Ver paquetes instalados
   pip list
 
---- Ejecución de la aplicación ---
+--- Ejecucion de la aplicacion ---
 
-  # Arrancar la aplicación Streamlit (modo desarrollo)
+  # Arrancar la aplicacion Streamlit (modo desarrollo)
   streamlit run app.py
 
-  # Arrancar en un puerto específico
+  # Arrancar en un puerto especifico
   streamlit run app.py --server.port 8502
-
-  # Arrancar sin abrir el navegador automáticamente
-  streamlit run app.py --server.headless true
 
 --- Git (control de versiones) ---
 
   # Inicializar repositorio
   git init
 
-  # Añadir todos los archivos
+  # Anadir todos los archivos
   git add .
 
   # Hacer commit
-  git commit -m "Descripción del cambio"
+  git commit -m "Descripcion del cambio"
 
   # Ver estado de los cambios
   git status
@@ -853,24 +1020,20 @@ durante el desarrollo del proyecto, organizados por categoría.
   # Ver historial de commits
   git log --oneline -10
 
---- Inspección de la base de datos SQLite ---
-
-  # Abrir la base de datos con la herramienta sqlite3 de línea de comandos
-  # (requiere sqlite3 instalado o usar Python directamente)
-  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); print(conn.execute('SELECT * FROM usuarios').fetchall())"
+--- Inspeccion de la base de datos SQLite ---
 
   # Consultar usuarios
   python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT id, username, role FROM usuarios').fetchall()]"
 
-  # Consultar menús
+  # Consultar menus
   python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT id, nombre, precio FROM menus').fetchall()]"
 
-  # Consultar pedidos
-  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT * FROM pedidos').fetchall()]"
+  # Consultar evaluaciones
+  python -c "import sqlite3; conn = sqlite3.connect('data/menumatch.db'); [print(r) for r in conn.execute('SELECT id, username, satisfaccion, recommendation_type FROM evaluaciones_menus').fetchall()]"
 
 --- Utilidades de desarrollo ---
 
-  # Limpiar caché de Python
+  # Limpiar cache de Python
   Remove-Item -Recurse -Force utils\__pycache__
 
   # Ver estructura del proyecto
@@ -878,105 +1041,55 @@ durante el desarrollo del proyecto, organizados por categoría.
 
 
 ================================================================================
-                       CREACIÓN DE LA BASE DE DATOS (SQLITE)
+                       CREACION DE LA BASE DE DATOS (SQLITE)
 ================================================================================
 
-Este apartado documenta cómo se creó la base de datos del proyecto y su
-evolución desde almacenamiento JSON hasta SQLite.
+Este apartado documenta como se creo la base de datos del proyecto y su
+evolucion desde almacenamiento JSON hasta SQLite.
 
---- Evolución del almacenamiento de datos ---
+--- Evolucion del almacenamiento de datos ---
 
   FASE 1 (Feb 2026): Almacenamiento en JSON
-  ├── data/users.json   → Usuarios y contraseñas (hasheadas con bcrypt)
-  └── data/menus.json   → Platos subidos por restaurantes
+  |-- data/users.json   -> Usuarios y contrasenas (hasheadas con bcrypt)
+  +-- data/menus.json   -> Platos subidos por restaurantes
 
-  FASE 2 (Mar 2026): Migración a SQLite
-  └── data/menumatch.db → Base de datos relacional con 3 tablas
+  FASE 2 (Mar 2026): Migracion a SQLite
+  +-- data/menumatch.db -> Base de datos relacional con 4 tablas
 
---- ¿Por qué se migró de JSON a SQLite? ---
+--- ?Por que se migro de JSON a SQLite? ---
 
-  JSON tenía varias limitaciones:
-  • No soporta consultas complejas (filtrar, ordenar, agrupar)
-  • Problemas de concurrencia (dos usuarios escribiendo a la vez)
-  • No tiene integridad referencial
-  • Dificultad para añadir nuevas entidades (pedidos, valoraciones)
+  JSON tenia varias limitaciones:
+  - No soporta consultas complejas (filtrar, ordenar, agrupar)
+  - Problemas de concurrencia (dos usuarios escribiendo a la vez)
+  - No tiene integridad referencial
+  - Dificultad para anadir nuevas entidades (pedidos, valoraciones)
 
   SQLite fue elegido porque:
-  • Es una BD relacional COMPLETA integrada en Python (módulo sqlite3)
-  • NO requiere instalar ningún servidor ni software adicional
-  • Soporta transacciones ACID (atomicidad, consistencia, aislamiento,
-    durabilidad)
-  • Un solo archivo (data/menumatch.db) contiene toda la BD
-  • Fácil de migrar a PostgreSQL/MySQL en producción en el futuro
+  - Es una BD relacional COMPLETA integrada en Python (modulo sqlite3)
+  - NO requiere instalar ningun servidor ni software adicional
+  - Soporta transacciones ACID
+  - Un solo archivo (data/menumatch.db) contiene toda la BD
+  - Facil de migrar a PostgreSQL/MySQL en produccion en el futuro
 
 --- Archivo donde se crea la base de datos ---
 
-  utils/database.py — Módulo principal de la BD
+  utils/database.py -- Modulo principal de la BD
 
---- Cómo se crea la BD automáticamente ---
+--- Como se crea la BD automaticamente ---
 
-  La base de datos se crea automáticamente al arrancar la aplicación.
-  En app.py, la primera línea que se ejecuta es:
+  La base de datos se crea automaticamente al arrancar la aplicacion.
+  En app.py se ejecuta:
 
     from utils.database import init_db
     init_db()
 
-  Esto llama a la función init_db() de utils/database.py, que:
+  Esto llama a la funcion init_db() de utils/database.py, que:
     1. Crea la carpeta data/ si no existe
     2. Abre (o crea) el archivo data/menumatch.db
-    3. Ejecuta los CREATE TABLE IF NOT EXISTS para las 3 tablas
-    4. Si detecta archivos JSON antiguos, migra los datos automáticamente
+    3. Ejecuta los CREATE TABLE IF NOT EXISTS para las 4 tablas
+    4. Si detecta archivos JSON antiguos, migra los datos automaticamente
 
---- Esquema SQL completo de las 3 tablas ---
-
-  ┌──────────────────────────────────────────────────────────────────┐
-  │  TABLA: usuarios                                                │
-  ├──────────────┬──────────┬────────────────────────────────────────┤
-  │ Campo        │ Tipo     │ Detalles                               │
-  ├──────────────┼──────────┼────────────────────────────────────────┤
-  │ id           │ INTEGER  │ PRIMARY KEY AUTOINCREMENT              │
-  │ username     │ TEXT     │ UNIQUE NOT NULL                        │
-  │ password     │ TEXT     │ NOT NULL (hash bcrypt)                 │
-  │ role         │ TEXT     │ NOT NULL DEFAULT 'usuario'             │
-  │ nombre       │ TEXT     │ NOT NULL                               │
-  │ created_at   │ TEXT     │ NOT NULL DEFAULT datetime('now')       │
-  └──────────────┴──────────┴────────────────────────────────────────┘
-
-  ┌────────────────────────────────────────────────────────────────────┐
-  │  TABLA: menus                                                     │
-  ├──────────────────┬──────────┬──────────────────────────────────────┤
-  │ Campo            │ Tipo     │ Detalles                             │
-  ├──────────────────┼──────────┼──────────────────────────────────────┤
-  │ id               │ INTEGER  │ PRIMARY KEY AUTOINCREMENT            │
-  │ nombre           │ TEXT     │ NOT NULL                             │
-  │ precio           │ REAL     │ NOT NULL                             │
-  │ calorias         │ INTEGER  │ NOT NULL                             │
-  │ categoria        │ TEXT     │ DEFAULT 'Principal'                  │
-  │ vegetariano      │ BOOLEAN  │ DEFAULT 0                            │
-  │ sin_gluten       │ BOOLEAN  │ DEFAULT 0                            │
-  │ con_lactosa      │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
-  │ con_frutos_secos │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
-  │ con_huevo        │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
-  │ bajo_sal         │ BOOLEAN  │ DEFAULT 0 (Decisión #12)             │
-  │ uploaded_by      │ TEXT     │ NOT NULL (quién subió el plato)      │
-  │ uploaded_at      │ TEXT     │ NOT NULL DEFAULT datetime('now')     │
-  └──────────────────┴──────────┴──────────────────────────────────────┘
-
-  ┌──────────────────────────────────────────────────────────────────┐
-  │  TABLA: pedidos                                                 │
-  ├──────────────┬──────────┬────────────────────────────────────────┤
-  │ Campo        │ Tipo     │ Detalles                               │
-  ├──────────────┼──────────┼────────────────────────────────────────┤
-  │ id           │ INTEGER  │ PRIMARY KEY AUTOINCREMENT              │
-  │ username     │ TEXT     │ NOT NULL (usuario que hizo el pedido)  │
-  │ platos       │ TEXT     │ NOT NULL (JSON array de nombres)       │
-  │ precio       │ REAL     │ NOT NULL                               │
-  │ calorias     │ INTEGER  │ NOT NULL                               │
-  │ valoracion   │ INTEGER  │ DEFAULT 0 (0 = sin valorar, 1-5)      │
-  │ fecha        │ TEXT     │ NOT NULL DEFAULT datetime('now')       │
-  └──────────────┴──────────┴────────────────────────────────────────┘
-
---- SQL exacto que crea las tablas ---
+--- Esquema SQL completo de las 4 tablas ---
 
   CREATE TABLE IF NOT EXISTS usuarios (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1013,270 +1126,148 @@ evolución desde almacenamiento JSON hasta SQLite.
       fecha       TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 
---- Configuración de la conexión ---
+  CREATE TABLE IF NOT EXISTS evaluaciones_menus (
+      id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+      username            TEXT    NOT NULL,
+      platos              TEXT    NOT NULL,
+      precio              REAL    NOT NULL,
+      calorias            INTEGER NOT NULL,
+      score               REAL    NOT NULL,
+      recommendation_type TEXT    NOT NULL DEFAULT 'heuristic',
+      restricciones_json  TEXT    DEFAULT '{}',
+      satisfaccion        INTEGER NOT NULL CHECK(satisfaccion BETWEEN 1 AND 5),
+      calidad_precio      INTEGER NOT NULL CHECK(calidad_precio BETWEEN 1 AND 5),
+      elegiria_real       BOOLEAN NOT NULL DEFAULT 0,
+      fecha               TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+--- Configuracion de la conexion ---
 
   Al conectar a la BD, se activan dos PRAGMAs importantes:
 
   PRAGMA journal_mode=WAL;
-    → Modo "Write-Ahead Logging" que permite lecturas concurrentes mientras
-      se escribe, mejorando el rendimiento en aplicaciones multiusuario.
+    -> Modo "Write-Ahead Logging" que permite lecturas concurrentes mientras
+       se escribe, mejorando el rendimiento en aplicaciones multiusuario.
 
   PRAGMA foreign_keys=ON;
-    → Activa la integridad referencial (claves foráneas) que SQLite
-      tiene desactivada por defecto.
+    -> Activa la integridad referencial (claves foraneas) que SQLite
+       tiene desactivada por defecto.
 
---- Proceso de migración de JSON a SQLite ---
+--- Proceso de migracion de JSON a SQLite ---
 
-  La migración es AUTOMÁTICA y transparente. Al arrancar la app:
+  La migracion es AUTOMATICA y transparente. Al arrancar la app:
 
   1. init_db() crea las tablas si no existen
-  2. Si existe data/users.json Y la tabla usuarios está VACÍA:
-     → Lee el JSON, inserta los usuarios en la tabla
-     → Renombra users.json a users.json.bak (backup)
-  3. Si existe data/menus.json Y la tabla menus está VACÍA:
-     → Lee el JSON, inserta los menús en la tabla
-     → Renombra menus.json a menus.json.bak (backup)
+  2. Si existe data/users.json Y la tabla usuarios esta VACIA:
+     -> Lee el JSON, inserta los usuarios en la tabla
+     -> Renombra users.json a users.json.bak (backup)
+  3. Si existe data/menus.json Y la tabla menus esta VACIA:
+     -> Lee el JSON, inserta los menus en la tabla
+     -> Renombra menus.json a menus.json.bak (backup)
 
-  De esta forma, la primera vez que se arranca la app tras la migración,
-  los datos se importan automáticamente sin pérdida.
+  De esta forma, la primera vez que se arranca la app tras la migracion,
+  los datos se importan automaticamente sin perdida.
 
---- Ubicación del archivo de la BD ---
+--- Ubicacion del archivo de la BD ---
 
   data/menumatch.db
 
-  Este archivo es BINARIO y contiene toda la información del sistema.
+  Este archivo es BINARIO y contiene toda la informacion del sistema.
   Se puede inspeccionar con herramientas como DB Browser for SQLite
-  o directamente desde Python con el módulo sqlite3.
-
-
-================================================================================
-                           PRÓXIMAS DECISIONES PENDIENTES
-================================================================================
-
-[x] Algoritmo de recomendación — Heurístico basado en reglas (Decisión #13)
-[x] Formato de entrada de menús — CSV + manual (Decisión #10)
-[x] Persistencia de datos — JSON compartido (Decisión #10) → SQLite (Decisión #11)
-[x] Autenticación de usuarios — Implementada (Decisión #6)
-[x] Sidebar y logout — Implementada (Decisión #7, mejorada en #9)
-[x] CRUD de usuarios para admin — Implementada (Decisión #8)
-[x] Navegación por roles — Implementada (Decisión #9)
-[x] Base de datos relacional — SQLite con 3 tablas (Decisión #11)
-[x] Persistencia externa Google Sheets — Implementada (Decisión #16)
-[x] Pipeline de ML y dataset limpio — Implementado (Decisión #17)
-[x] Panel Admin con exportación bidireccional — Implementado (Decisión #18)
-[x] Entrenamiento del modelo ML — Implementado (Decisión #19)
-[ ] Predicción en producción (Integración con sistema Heurístico)
-[ ] Despliegue (Streamlit Cloud, Heroku, AWS)
-
-------------------------------------------------------------------------------
-DECISIÓN #17: Pipeline de Machine Learning — Dataset Limpio
-------------------------------------------------------------------------------
-Fecha: 2026-05-08
-Estado: Implementada
-
-¿Qué se decidió?
-- Crear el módulo utils/ml_pipeline.py con la función get_clean_dataset()
-  que extrae, transforma y limpia los datos de evaluaciones para entrenar.
-- Hibridación Inteligente de Datos (Añadido): El pipeline prioriza extraer 
-  los datos de Google Sheets (Cloud). Si la conexión falla, no hay credenciales, 
-  o el dataset está vacío, aplica un fallback automático a SQLite (Local).
-  Implementa normalización de columnas para compatibilidad de esquemas.
-- Añadir scikit-learn>=1.2.0 y joblib>=1.2.0 a requirements.txt.
-
-¿Por qué se tomó esta decisión?
-- Los datos de inferencia y entrenamiento deben procesarse idénticamente.
-- La mayoría de las evaluaciones reales generadas en producción se almacenan
-  en Google Sheets. Conectar el pipeline directamente a la nube permite
-  reentrenar el modelo con datos frescos sin migraciones manuales.
-
-Feature engineering implementado:
-  presupuesto_max  → Extraído de restricciones_json con fallback 15.0
-  price_ratio      → precio / presupuesto_max (clip lower=0.01)
-  satisfied        → 1 si satisfaccion >= 4, 0 si satisfaccion <= 3
-
-Columnas del DataFrame final:
-  ['id', 'calorias', 'precio', 'presupuesto_max', 'price_ratio',
-   'score', 'recommendation_type', 'satisfied']
-
-Columnas excluidas (motivo):
-  calidad_precio   → Redundante con satisfied (deriva de la misma opinión)
-  restricciones_json, platos, fecha, username → No predictivos
-
-Gestión de edge cases:
-  - BD vacía: devuelve DataFrame vacío con esquema correcto (no falla)
-  - JSON inválido: fallback a 15.0 para presupuesto_max
-  - División por cero en price_ratio: clip(lower=0.01)
-
-Archivos creados/modificados:
-  utils/ml_pipeline.py (NUEVO) — función get_clean_dataset()
-  requirements.txt (MODIFICADO) — scikit-learn, joblib
-
-------------------------------------------------------------------------------
-DECISIÓN #18: Panel Admin — Exportación Bidireccional con Pestañas
-------------------------------------------------------------------------------
-Fecha: 2026-05-08
-Estado: Implementada
-
-¿Qué se decidió?
-- Rediseñar la sección "Exportar Datos de Investigación" del Panel Admin
-  con dos pestañas (st.tabs):
-    ☁️ Google Sheets (nube) — Datos históricos completos, descarga bajo demanda
-    🗄️ SQLite (local)       — Datos de la sesión actual, siempre disponibles
-- La pestaña de Sheets se activa con un botón explícito (no en el page load)
-  para evitar bloqueos en entornos sin credenciales.
-- Añadir utils/google_sheets.py: nueva función get_all_data_from_sheets()
-  que lee todos los registros de la primera hoja de MenuMatch_Data.
-- Visualización del dataset preprocesado para ML en un st.expander con
-  métricas de distribución de clases (total, positivos, negativos).
-
-¿Por qué se tomó esta decisión?
-- La exportación automática al cargar la página fallaba en local (sin
-  GOOGLE_CREDENTIALS configurado), mostrando un error rojo confuso.
-- El patrón de dos pestañas permite al admin acceder a los datos en
-  cualquier entorno: con conexión a Sheets en producción, o con SQLite
-  en local durante el desarrollo.
-- El botón explícito "Cargar datos" implementa lazy loading: la conexión
-  de red solo se ejecuta cuando el admin la solicita, mejorando el tiempo
-  de carga inicial de la página.
-
-Manejo de errores por entorno:
-  ConnectionError → Sheets no disponible (sin credenciales): mensaje claro
-                    con instrucciones para configurar secrets.toml local
-  RuntimeError    → Fallo de red o API en producción: st.error descriptivo
-
-Configuración local de secretos:
-  .streamlit/secrets.toml (excluido de Git por seguridad)
-  Formato: GOOGLE_CREDENTIALS = '''{ JSON de cuenta de servicio }'''
-
-Archivos creados/modificados:
-  utils/google_sheets.py (MODIFICADO) — get_all_data_from_sheets()
-  pages/6_Admin.py (MODIFICADO) — st.tabs + expander ML dataset
-  .streamlit/secrets.toml (NUEVO) — template de credenciales locales
-  .gitignore (MODIFICADO) — secrets.toml añadido a la lista de exclusiones
-
-------------------------------------------------------------------------------
-DECISIÓN #19: Entrenamiento de Modelo ML (Regresión Logística)
-------------------------------------------------------------------------------
-Fecha: 2026-05-08
-Estado: Implementada
-
-¿Qué se decidió?
-- Crear utils/ml_model.py para el entrenamiento y evaluación de un
-  modelo de Regresión Logística.
-- Integrar la ejecución del entrenamiento en el Panel Admin mediante
-  un botón en la sección de datos preprocesados.
-
-¿Por qué se tomó esta decisión?
-- Proveer un clasificador binario ('satisfied' = 1/0) para mejorar las
-  recomendaciones en el futuro.
-- Encapsular la lógica ML fuera de la UI, exponiendo métricas simples
-  (accuracy, confusion_matrix, etc.) mediante diccionarios.
-
-Detalles Técnicos:
-- Variables predictivas: ['calorias', 'price_ratio', 'score']
-- Estandarización: StandardScaler()
-- Algoritmo: LogisticRegression(max_iter=1000)
-- Guardado: models/logistic_model.joblib y models/scaler.joblib
-
-Archivos creados/modificados:
-  utils/ml_model.py (NUEVO) — Lógica de entrenamiento ML
-  pages/6_Admin.py (MODIFICADO) — Interfaz de entrenamiento y métricas
+  o directamente desde Python con el modulo sqlite3.
 
 ================================================================================
-                              HISTORIAL DE CAMBIOS
+                           HISTORIAL DE CAMBIOS
 ================================================================================
 
-2026-02-09 | Creación inicial del documento
+2026-02-09 | Creacion inicial del documento
            | Documentadas decisiones iniciales del proyecto
 
-2026-02-10 | Añadida Decisión #6: Sistema de autenticación con 3 roles
-           | Implementación completa de login, registro y control de acceso
+2026-02-10 | Anadida Decision #6: Sistema de autenticacion con 3 roles
+           | Implementacion completa de login, registro y control de acceso
 
-2026-02-10 | Añadida Decisión #7: Sidebar compartido con botón de logout
-           | Función render_sidebar() centralizada en utils/auth.py
-           | Añadida Decisión #8: CRUD completo en panel de administración
+2026-02-10 | Anadida Decision #7: Sidebar compartido con boton de logout
+           | Funcion render_sidebar() centralizada en utils/auth.py
+           | Anadida Decision #8: CRUD completo en panel de administracion
            | admin_create_user, update_user_nombre, delete_user
 
-2026-02-10 | Añadida Decisión #9: Navegación por roles con st.navigation()
+2026-02-10 | Anadida Decision #9: Navegacion por roles con st.navigation()
            | Sustituye render_sidebar() por control centralizado en app.py
-           | Cada rol solo ve las páginas a las que tiene acceso
+           | Cada rol solo ve las paginas a las que tiene acceso
 
-2026-02-10 | Añadida Decisión #10: Menús compartidos vía data/menus.json
+2026-02-10 | Anadida Decision #10: Menus compartidos via data/menus.json
            | Los platos subidos por restaurantes ahora son visibles para todos
-           | Acciones rápidas del Inicio adaptadas al rol del usuario
+           | Acciones rapidas del Inicio adaptadas al rol del usuario
 
-2026-03-02 | Añadida Decisión #11: Migración a SQLite
+2026-03-02 | Anadida Decision #11: Migracion a SQLite
            | Creado utils/database.py con esquema de 3 tablas
            | Reescritos auth.py y menu_storage.py para usar SQL
-           | Nueva funcionalidad de pedidos con valoración
+           | Nueva funcionalidad de pedidos con valoracion
            | Historial ahora lee de BD en vez de session_state
-           | Migración automática de datos JSON existentes
+           | Migracion automatica de datos JSON existentes
 
-2026-03-03 | Añadidos 3 apéndices al documento:
-           | A. Guía de Instalación (pasos 1-8, tabla de dependencias)
-           | B. Comandos de Consola (entorno, paquetes, ejecución, git, BD)
-           | C. Creación de la Base de Datos (esquema SQL, PRAGMAs, migración)
+2026-03-03 | Anadidos 3 apendices al documento:
+           | A. Guia de Instalacion (pasos 1-8, tabla de dependencias)
+           | B. Comandos de Consola (entorno, paquetes, ejecucion, git, BD)
+           | C. Creacion de la Base de Datos (esquema SQL, PRAGMAs, migracion)
 
-2026-04-15 | Añadida Decisión #12: Restricciones Alimentarias para ML
+2026-04-15 | Anadida Decision #12: Restricciones Alimentarias para ML
            | 4 nuevas columnas en tabla menus: con_lactosa, con_frutos_secos,
            | con_huevo, bajo_sal
-           | Migración ALTER TABLE idempotente en database.py
-           | UI actualizada con 6 checkboxes (2 filas × 3 columnas)
+           | Migracion ALTER TABLE idempotente en database.py
+           | UI actualizada con 6 checkboxes en pagina de Restricciones
            | Formato CSV actualizado con las 10 columnas completas
 
-2026-04-15 | Añadida Decisión #13: Motor de Recomendación Heurístico
+2026-04-15 | Anadida Decision #13: Motor de Recomendacion Heuristico
            | Creado utils/recomendador_heuristico.py con filtrado + scoring
-           | Reescrita pages/4_🎯_Recomendaciones.py con sidebar integrado
-           | Fórmula: score = w1×satisf - w2×precio_norm - w3×desv_cal
-           | Generación de combinaciones Primero+Segundo automática
-           | Sección de transparencia con desglose del algoritmo
+           | Reescrita pages/4_Recomendaciones.py con sidebar integrado
+           | Formula: score = 1.0 - desviacion_calorica - (precio x 0.001)
+           | Generacion de combinaciones de plantillas de menu
+           | Seccion de transparencia con desglose del algoritmo
 
-2026-04-20 | Añadida Decisión #14: Carta Completa
-           | Interfaz de carrito en nueva página pages/7_📖_Carta_Completa.py
-           | Modificado app.py para añadirla al navbar
+2026-04-20 | Anadida Decision #14: Carta Completa
+           | Interfaz de pedido manual en nueva pagina pages/7_Carta_Completa.py
+           | Modificado app.py para anadirla al navbar
 
-2026-04-20 | Añadida Decisión #15: Formulario de Evaluación (ML Feedback)
+2026-04-20 | Anadida Decision #15: Formulario de Evaluacion (ML Feedback)
            | Nueva tabla evaluaciones_menus en SQLite
            | Funciones create_evaluacion() y get_all_evaluaciones()
            | Formulario con 3 preguntas en pages/4_Recomendaciones.py
 
-2026-04-22 | Añadida Decisión #16: Persistencia en Google Sheets
-           | Nuevo módulo utils/google_sheets.py con save_to_google_sheets()
+2026-04-22 | Anadida Decision #16: Persistencia en Google Sheets
+           | Nuevo modulo utils/google_sheets.py con save_to_google_sheets()
            | Dependencias: gspread>=6.0.0, google-auth>=2.20.0
-           | Integración en pages/4_Recomendaciones.py tras create_evaluacion()
-           | Patrón fire-and-forget con try-except para resiliencia
+           | Integracion en pages/4_Recomendaciones.py tras create_evaluacion()
+           | Patron fire-and-forget con try-except para resiliencia
 
-2026-05-08 | Añadida Decisión #17: Pipeline de Machine Learning
-           | Nuevo módulo utils/ml_pipeline.py con get_clean_dataset()
+2026-05-08 | Anadida Decision #17: Pipeline de Machine Learning
+           | Nuevo modulo utils/ml_pipeline.py con get_clean_dataset()
            | Feature engineering: presupuesto_max, price_ratio, satisfied
-           | requirements.txt: añadidos scikit-learn>=1.2.0, joblib>=1.2.0
+           | requirements.txt: anadidos scikit-learn>=1.2.0, joblib>=1.2.0
 
-2026-05-08 | Añadida Decisión #18: Panel Admin — Exportación Bidireccional
-           | utils/google_sheets.py: nueva función get_all_data_from_sheets()
-           | pages/6_Admin.py: sección exportación rediseñada con st.tabs
-           | Pestaña Sheets con lazy loading (botón explícito)
-           | Pestaña SQLite siempre disponible como fallback
-           | Expander "Datos Preprocesados para ML" con métricas de clases
+2026-05-08 | Anadida Decision #18: Panel Admin - Exportacion Bidireccional
+           | utils/google_sheets.py: nueva funcion get_all_data_from_sheets()
+           | pages/6_Admin.py: seccion exportacion rediseada con st.tabs
+           | Pestana Sheets con lazy loading (boton explicito)
+           | Pestana SQLite siempre disponible como fallback
            | .streamlit/secrets.toml creado (template local, excluido de Git)
            | .gitignore actualizado: secrets.toml protegido
 
-2026-05-08 | Añadida Decisión #19: Entrenamiento de Modelo ML
-           | utils/ml_model.py: lógica de Regresión Logística
-           | Integrado botón de entrenamiento en pages/6_Admin.py
-           | Visualización de métricas (Accuracy, Confusión, Tramos de train/test)
+2026-05-08 | Anadida Decision #19: Entrenamiento de Modelo ML
+           | utils/ml_model.py: logica de Regresion Logistica con StandardScaler
+           | Integrado boton de entrenamiento en pages/6_Admin.py
+           | Visualizacion de metricas (Accuracy, Confusion Matrix, train/test)
 
-2026-05-10 | Añadida Decisión #23: Mejora UI Gestión Usuarios y Ocultación Documentación
-           | pages/6_Admin.py: Se elimina visor de DECISIONES_PROYECTO.txt
-           | Se rediseña el apartado de gestión de usuarios con st.container y expanders
+2026-05-10 | Anadidas Decisiones #22 y #23: Rediseno Panel Admin
+           | pages/6_Admin.py: cuadro de mando con metricas rapidas
+           | Organizacion en 3 pestanas: Gestion de Datos, IA, Configuracion
+           | Gestion de usuarios rediseada con contenedores y expanders
+           | Eliminado visor de documentacion interna de la UI
+
+2026-05-31 | Actualizacion documental para entrega del TFG
+           | Eliminados emojis de ambos documentos de referencia
+           | CONTEXTO_PROYECTO.txt: actualizado estado con ML en produccion
+           | DECISIONES_PROYECTO.txt: estandarizado formato de todas las decisiones
+           | pages/3_Restricciones.py: anadidas 3 restricciones faltantes (6 total)
 
 ================================================================================
-
-
-Decisión #22: Rediseño del Panel de Administración (6_Admin.py)
-- Se reestructura en un cuadro de mando profesional, eliminando emojis decorativos.
-- Se implementa un panel de métricas rápidas (Flash Metrics) que muestra total de usuarios, evaluaciones, ratio A/B y la accuracy de la IA actual.
-- Se divide el contenido en tres pestañas principales: Gestión de Datos, Inteligencia Artificial, y Configuración y Logs, para optimizar el espacio visual y agrupar funcionalidades relacionadas.
-
-Decisión #23: Mejora UI Gestión Usuarios y Ocultación Documentación
-- Se elimina el visor del documento de decisiones de pages/6_Admin.py ya que es un recurso interno para la elaboración de la memoria del TFG.
-- Se rediseña la lista de usuarios usando st.container(border=True) para enmarcar a cada usuario y st.expander para ocultar las opciones de edición/eliminación. Esto le da un toque mucho más profesional y estructurado ("serio y elaborado") en contraste con la disposición plana anterior.
